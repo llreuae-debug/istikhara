@@ -75,6 +75,7 @@ export function UploadZone({ onImageSelect, isAnalyzing }: UploadZoneProps) {
       onDragLeave={handleDragOut}
       onDragOver={handleDrag}
       onDrop={handleDrop}
+      data-testid="dropzone-upload"
     >
       <div className="min-h-64 p-8 flex flex-col items-center justify-center">
         {isAnalyzing ? (

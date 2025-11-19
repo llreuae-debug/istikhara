@@ -1,6 +1,4 @@
-import { useState } from "react";
 import { useLocation } from "wouter";
-import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { UploadZone } from "@/components/upload-zone";
 import { IslamicPattern } from "@/components/islamic-pattern";
@@ -21,12 +19,13 @@ export default function Home() {
         reader.onloadend = async () => {
           try {
             const base64 = (reader.result as string).split(",")[1];
-            const result = await apiRequest<VerseAnalysis>(
+            const response = await apiRequest(
               "POST",
               "/api/analyze-verse",
               { imageBase64: base64 }
             );
-            resolve(result);
+            const result = await response.json();
+            resolve(result as VerseAnalysis);
           } catch (error) {
             reject(error);
           }
@@ -147,7 +146,7 @@ export default function Home() {
                   for their life choices.
                 </p>
               </Card>
-              <Card className="p-6 space-y-4 dir-rtl" data-testid="card-about-urdu">
+              <Card className="p-6 space-y-4" data-testid="card-about-urdu" dir="rtl">
                 <h3 className="text-xl font-semibold font-urdu text-foreground text-right" data-testid="text-about-title-urdu">
                   استخارہ کیا ہے؟
                 </h3>
@@ -166,14 +165,14 @@ export default function Home() {
       <footer className="py-12 bg-card/20 border-t">
         <div className="container mx-auto px-4">
           <div className="text-center space-y-4">
-            <p className="text-lg font-urdu text-foreground">
+            <p className="text-lg font-urdu text-foreground" dir="rtl" data-testid="text-footer-greeting">
               السلام علیکم ورحمۃ اللہ وبرکاتہ
             </p>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-muted-foreground" data-testid="text-footer-message">
               May this tool bring you closer to divine guidance
             </p>
             <div className="flex justify-center gap-6 text-sm text-muted-foreground pt-4">
-              <span>Built with reverence and care</span>
+              <span data-testid="text-footer-credit">Built with reverence and care</span>
             </div>
           </div>
         </div>

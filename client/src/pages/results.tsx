@@ -33,7 +33,7 @@ export default function Results() {
             <ArrowLeft className="w-4 h-4" />
             Back
           </Button>
-          <h1 className="text-lg font-semibold text-foreground">Spiritual Interpretation</h1>
+          <h1 className="text-lg font-semibold text-foreground" data-testid="heading-results-page">Spiritual Interpretation</h1>
           <Button
             variant="ghost"
             size="icon"
@@ -165,10 +165,10 @@ export default function Results() {
       <footer className="py-12 bg-card/20 border-t mt-16">
         <div className="container mx-auto px-4">
           <div className="text-center space-y-4">
-            <p className="text-lg font-urdu text-foreground">
+            <p className="text-lg font-urdu text-foreground" dir="rtl" data-testid="text-results-footer-greeting">
               السلام علیکم ورحمۃ اللہ وبرکاتہ
             </p>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-muted-foreground" data-testid="text-results-footer-message">
               May this interpretation guide you on your spiritual journey
             </p>
           </div>
