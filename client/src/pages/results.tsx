@@ -8,49 +8,62 @@ import type { VerseAnalysis } from "@shared/schema";
 export default function Results() {
   const [, setLocation] = useLocation();
   
-  // Get analysis data from URL query parameter
+  // Get analysis data from URL query parameter or sessionStorage
   const searchParams = new URLSearchParams(window.location.search);
   const analysisParam = searchParams.get("analysis");
-  
-  if (!analysisParam) {
+
+  let analysis: VerseAnalysis | null = null;
+  try {
+    if (analysisParam) {
+      analysis = JSON.parse(decodeURIComponent(analysisParam)) as VerseAnalysis;
+    } else {
+      const stored = sessionStorage.getItem("istikhara:latestAnalysis");
+      if (stored) {
+        analysis = JSON.parse(stored) as VerseAnalysis;
+      }
+    }
+  } catch {
+    analysis = null;
+  }
+
+  if (!analysis) {
     setLocation("/");
     return null;
   }
 
-  const analysis: VerseAnalysis = JSON.parse(decodeURIComponent(analysisParam));
-
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-dvh bg-background pb-[env(safe-area-inset-bottom,0px)]">
       {/* Header */}
-      <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+      <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur pt-[env(safe-area-inset-top,0px)]">
+        <div className="container mx-auto px-4 py-3 sm:py-4 flex items-center justify-between gap-2">
           <Button
             variant="ghost"
             onClick={() => setLocation("/")}
             className="gap-2"
             data-testid="button-back-home"
           >
-            <ArrowLeft className="w-4 h-4" />
+            <ArrowLeft className="w-4 h-4" aria-hidden="true" />
             Back
           </Button>
-          <h1 className="text-lg font-semibold text-foreground" data-testid="heading-results-page">Spiritual Interpretation</h1>
+          <h1 className="text-base sm:text-lg font-semibold text-foreground truncate" data-testid="heading-results-page">Spiritual Interpretation</h1>
           <Button
             variant="ghost"
             size="icon"
             onClick={() => setLocation("/")}
+            aria-label="Go to home"
             data-testid="button-home"
           >
-            <Home className="w-5 h-5" />
+            <Home className="w-5 h-5" aria-hidden="true" />
           </Button>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="container mx-auto px-4 py-12">
+      <main className="container mx-auto px-4 py-8 sm:py-12">
         <div className="max-w-4xl mx-auto space-y-8">
           
           {/* Verse Display Section */}
-          <Card className="p-8 md:p-12 space-y-6 border-2">
+          <Card className="p-5 sm:p-8 md:p-12 space-y-6 border-2">
             <div className="text-center space-y-2">
               {analysis.surahName && (
                 <p className="text-sm font-medium text-muted-foreground" data-testid="text-verse-reference">

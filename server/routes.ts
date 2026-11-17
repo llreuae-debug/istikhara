@@ -1,18 +1,18 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { analyzeVerseImage } from "./openai";
+import { analyzeVerseImage } from "./gemini";
 import { analyzeVerseRequestSchema } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Analyze verse endpoint
   app.post("/api/analyze-verse", async (req, res) => {
     try {
-      // Check for OpenAI API key
-      if (!process.env.OPENAI_API_KEY) {
+      // Check for Gemini API key
+      if (!process.env.GEMINI_API_KEY) {
         return res.status(500).json({ 
           error: "Configuration error", 
-          message: "OpenAI API key is not configured. Please add your API key to continue." 
+          message: "Gemini API key is not configured. Please add your API key to continue." 
         });
       }
 
@@ -47,8 +47,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      // Handle OpenAI API errors
-      if (error.message?.includes('OpenAI')) {
+      // Handle Gemini API errors
+      if (error.message?.includes('Gemini')) {
         return res.status(500).json({ 
           error: "AI service error", 
           message: "Unable to analyze the verse at this time. Please try again later." 

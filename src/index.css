@@ -1,0 +1,124 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --midnight: #0A1A2F;
+  --emerald: #0B3D2E;
+  --emerald-light: #14614A;
+  --gold: #C9A227;
+  --gold-soft: #E6CF7A;
+  --ivory: #F7F1E3;
+  --ink: #1B1B1B;
+
+  /* Dark theme defaults (illuminated mushaf at night) */
+  --bg-primary: #0A1A2F;
+  --bg-surface: rgba(11, 61, 46, 0.42);
+  --bg-card: rgba(10, 26, 47, 0.82);
+  --bg-elevated: rgba(20, 97, 74, 0.35);
+  --text-primary: #F7F1E3;
+  --text-secondary: rgba(247, 241, 227, 0.78);
+  --text-muted: rgba(247, 241, 227, 0.6);
+  --border-gold: rgba(201, 162, 39, 0.34);
+  --border-subtle: rgba(247, 241, 227, 0.14);
+  --accent-gold: #E6CF7A;
+  --target-size: 36px;
+}
+
+[data-theme="light"] {
+  --bg-primary: #F7F1E3;
+  --bg-surface: rgba(255, 255, 255, 0.72);
+  --bg-card: rgba(255, 253, 248, 0.94);
+  --bg-elevated: rgba(11, 61, 46, 0.08);
+  --text-primary: #1B1B1B;
+  --text-secondary: rgba(27, 27, 27, 0.82);
+  --text-muted: rgba(27, 27, 27, 0.64);
+  --border-gold: rgba(154, 118, 16, 0.35);
+  --border-subtle: rgba(11, 61, 46, 0.16);
+  --accent-gold: #9A7610;
+}
+
+@media (pointer: coarse) {
+  :root {
+    --target-size: 44px;
+  }
+}
+
+html {
+  scroll-padding-top: calc(4.5rem + env(safe-area-inset-top, 0px));
+  scroll-padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: 'Inter', system-ui, sans-serif;
+  overflow-wrap: break-word;
+  -webkit-font-smoothing: antialiased;
+}
+
+img,
+svg {
+  max-inline-size: 100%;
+}
+
+h1,
+h2,
+h3 {
+  text-wrap: balance;
+}
+
+p,
+li {
+  text-wrap: pretty;
+}
+
+.font-arabic-quran {
+  font-family: 'Amiri Quran', 'Amiri', 'Scheherazade New', serif;
+  line-height: 2.15;
+  direction: rtl;
+  unicode-bidi: isolate;
+}
+
+.font-urdu-nastaliq {
+  font-family: 'Noto Nastaliq Urdu', serif;
+  line-height: 2.35;
+  direction: rtl;
+}
+
+.font-display-serif {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+}
+
+/* Gold keyboard focus rings */
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+/* Touch-friendly minimum target sizes */
+:where(button, [role="button"], nav a, input[type="range"]) {
+  min-block-size: var(--target-size);
+}
+
+/* Shimmer skeleton */
+@media (prefers-reduced-motion: no-preference) {
+  .mushaf-shimmer {
+    background: linear-gradient(
+      90deg,
+      rgba(201, 162, 39, 0.06) 0%,
+      rgba(201, 162, 39, 0.16) 50%,
+      rgba(201, 162, 39, 0.06) 100%
+    );
+    background-size: 200% 100%;
+    animation: mushafShimmer 1.6s ease-in-out infinite;
+  }
+}
+
+@keyframes mushafShimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}

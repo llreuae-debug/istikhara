@@ -35,7 +35,12 @@ export default function Home() {
       });
     },
     onSuccess: (data) => {
-      setLocation(`/results?analysis=${encodeURIComponent(JSON.stringify(data))}`);
+      try {
+        sessionStorage.setItem("istikhara:latestAnalysis", JSON.stringify(data));
+        setLocation("/results");
+      } catch {
+        setLocation(`/results?analysis=${encodeURIComponent(JSON.stringify(data))}`);
+      }
     },
     onError: (error: any) => {
       toast({
@@ -51,16 +56,16 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-dvh bg-background pb-[env(safe-area-inset-bottom,0px)]">
       {/* Hero Section */}
-      <section className="relative min-h-[70vh] flex items-center justify-center overflow-hidden">
+      <section className="relative min-h-[70dvh] flex items-center justify-center overflow-hidden pt-[env(safe-area-inset-top,0px)]">
         <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-background to-background">
           <IslamicPattern />
         </div>
         
-        <div className="relative z-10 container mx-auto px-4 py-16 flex flex-col items-center text-center space-y-8">
+        <div className="relative z-10 container mx-auto px-4 py-12 sm:py-16 flex flex-col items-center text-center space-y-6 sm:space-y-8">
           <div className="space-y-4 max-w-3xl">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground tracking-tight" data-testid="text-app-title">
+            <h1 className="text-[clamp(2.25rem,1.5rem+4vw,3.75rem)] font-bold text-foreground tracking-tight" data-testid="text-app-title">
               Istikhara
             </h1>
             <p className="text-2xl md:text-3xl font-urdu font-medium text-foreground/90 leading-relaxed" dir="rtl" data-testid="text-app-title-urdu">

@@ -1,0 +1,139 @@
+{
+  "appName": "Istikhara",
+  "appNameEn": "Istikhara",
+  "tagline": "Receive divine guidance through Quranic verse",
+  "taglineEn": "Receive divine guidance through Quranic verse",
+  "religiousNote": "This verse is for reflection. The Sunnah Istikhara is two rak'ahs and the dua. For major decisions, also seek counsel from people of knowledge.",
+  "nav": {
+    "home": "Home",
+    "prepare": "Prepare",
+    "guide": "Sunnah Method",
+    "daily": "Verse of the Day",
+    "history": "My Verses",
+    "settings": "Settings",
+    "about": "About"
+  },
+  "home": {
+    "beginCta": "Begin Istikhara",
+    "sunnahMethod": "Sunnah Method",
+    "verseOfDay": "Verse of the Day",
+    "myVerses": "My Verses",
+    "subtitle": "Calm your heart in the quiet light of the Noble Quran."
+  },
+  "prepare": {
+    "title": "Prepare Your Heart",
+    "stepLabel": "Step",
+    "of": "of",
+    "step1Title": "Wudu & Two Rak'ahs",
+    "step1Body": "The Sunnah Istikhara begins with wudu and praying two voluntary rak'ahs. If you cannot pray right now or simply wish to reflect on a verse, you may continue to the next step.",
+    "step1Link": "Read the full Sunnah Method",
+    "step2Title": "The Istikhara Dua",
+    "step2Body": "Recite the Istikhara dua with sincerity. Tap the highlighted phrase to see where to mention your specific matter.",
+    "tapPhrase": "Tap the highlighted phrase to see where to mention your matter",
+    "step3Title": "Your Intention (Optional)",
+    "step3Body": "Choose a category and optionally write a brief private note.",
+    "privacyBadge": "Stored only on your device — no server, no account",
+    "notePlaceholder": "Optional private note about your decision...",
+    "next": "Continue",
+    "back": "Back",
+    "continueToFocus": "Continue to Focus"
+  },
+  "categories": {
+    "marriage": "Marriage",
+    "business": "Business",
+    "job": "Job",
+    "travel": "Travel",
+    "study": "Study",
+    "property": "Property",
+    "other": "Other"
+  },
+  "focus": {
+    "title": "Focus Moment",
+    "prompt": "Recite Durood Sharif and focus your heart on your matter.",
+    "tasbihHint": "Tap the bead 3 times or press and hold for 3 seconds",
+    "beadsDone": "All 3 beads completed",
+    "revealBtn": "Reveal Verse",
+    "skip": "Skip to Verse"
+  },
+  "result": {
+    "surah": "Surah",
+    "ayah": "Ayah",
+    "juz": "Juz",
+    "playAudio": "Play Recitation",
+    "pauseAudio": "Pause",
+    "reciter": "Reciter",
+    "tafsir": "Tafsir",
+    "downloadPdf": "Download PDF",
+    "share": "Share",
+    "save": "Save",
+    "saved": "Saved",
+    "newIstikhara": "New Istikhara",
+    "repeatReminder": "Repeating Istikhara repeatedly for the same matter is not encouraged — place your trust in Allah (tawakkul) and consult people of wisdom (istishara).",
+    "loading": "Retrieving verse from Al-Quran Cloud...",
+    "errorTitle": "Could not load verse",
+    "errorBody": "Unable to reach the Quran API. Please check your connection and try again.",
+    "retry": "Retry",
+    "performOwn": "Perform your own Istikhara →",
+    "includeNoteInPdf": "Include my private note in PDF"
+  },
+  "share": {
+    "title": "Share Verse",
+    "nativeShare": "Share via Device",
+    "copyLink": "Copy Link",
+    "copied": "Link copied!",
+    "downloadPost": "Post Image (1080×1350)",
+    "downloadStory": "Story Image (1080×1920)",
+    "privacyNote": "Your private intention note is never included in shares.",
+    "close": "Close"
+  },
+  "history": {
+    "title": "My Verses",
+    "allTab": "All",
+    "savedTab": "Saved",
+    "empty": "No verses recorded yet.",
+    "journalLabel": "What did you decide? How did it turn out?",
+    "journalPlaceholder": "Write your private reflection (stored only on your device)...",
+    "saveJournal": "Save Reflection",
+    "exportJson": "Export JSON",
+    "clearAll": "Clear All",
+    "confirmClear": "Are you sure you want to delete all recorded verses and notes?"
+  },
+  "daily": {
+    "title": "Verse of the Day",
+    "subtitle": "A shared daily Quranic verse for quiet reflection"
+  },
+  "settings": {
+    "title": "Settings",
+    "language": "Language",
+    "theme": "Theme",
+    "themeDark": "Dark (Midnight)",
+    "themeLight": "Light (Ivory)",
+    "themeAuto": "Auto",
+    "arabicSize": "Arabic Font Size",
+    "reciter": "Reciter",
+    "selectionMode": "Verse Selection Mode",
+    "modeFull": "Full Quran (1–6236 ayahs)",
+    "modeReflection": "Reflection Set (Guidance & Patience)",
+    "haptics": "Haptic Feedback",
+    "animations": "Animations",
+    "offlineTitle": "Offline Quran Text",
+    "offlineDesc": "Download the full Arabic, Urdu, and English editions once for offline use.",
+    "offlineBtn": "Download Quran Text for Offline",
+    "offlineDone": "Full Quran cached offline"
+  },
+  "about": {
+    "title": "About & Sources",
+    "purposeTitle": "Purpose",
+    "purposeBody": "Istikhara is a calm, ad-free, privacy-first web app designed to support Muslims with the Sunnah Istikhara method, dua, and quiet reflection on Quranic verses.",
+    "sourcesTitle": "Data Sources & Credits",
+    "privacyTitle": "Privacy",
+    "privacyBody": "No accounts, no analytics, and no server database. Your intentions, history, and reflections stay strictly on your own device in localStorage and IndexedDB.",
+    "contactTitle": "Contact"
+  },
+  "pwa": {
+    "installTitle": "Install Istikhara",
+    "installBody": "Add Istikhara to your home screen for fast, offline-ready access.",
+    "installBtn": "Install",
+    "dismiss": "Later"
+  }
+}

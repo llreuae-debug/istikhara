@@ -2,7 +2,7 @@ import type { Config } from "tailwindcss";
 
 export default {
   darkMode: ["class"],
-  content: ["./client/index.html", "./client/src/**/*.{js,jsx,ts,tsx}"],
+  content: ["./index.html", "./src/**/*.{js,jsx,ts,tsx}"],
   theme: {
     extend: {
       borderRadius: {
@@ -11,6 +11,17 @@ export default {
         sm: ".1875rem", /* 3px */
       },
       colors: {
+        midnight: "#0A1A2F",
+        emerald: {
+          DEFAULT: "#0B3D2E",
+          light: "#14614A",
+        },
+        gold: {
+          DEFAULT: "#C9A227",
+          soft: "#E6CF7A",
+        },
+        ivory: "#F7F1E3",
+        ink: "#1B1B1B",
         // Flat / base colors (regular buttons)
         background: "hsl(var(--background) / <alpha-value>)",
         foreground: "hsl(var(--foreground) / <alpha-value>)",
@@ -83,10 +94,11 @@ export default {
         },
       },
       fontFamily: {
-        sans: ["var(--font-sans)"],
-        serif: ["var(--font-serif)"],
-        mono: ["var(--font-mono)"],
-        arabic: ["'Amiri'", "'Scheherazade New'", "serif"],
+        display: ["'Cormorant Garamond'", "Georgia", "serif"],
+        sans: ["'Inter'", "system-ui", "sans-serif"],
+        serif: ["'Cormorant Garamond'", "Georgia", "serif"],
+        mono: ["Menlo", "monospace"],
+        arabic: ["'Amiri Quran'", "'Amiri'", "'Scheherazade New'", "serif"],
         urdu: ["'Noto Nastaliq Urdu'", "serif"],
       },
       keyframes: {

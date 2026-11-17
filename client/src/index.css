@@ -2,6 +2,49 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  :root {
+    --target-size: 24px;
+  }
+
+  @media (pointer: coarse) {
+    :root {
+      --target-size: 44px;
+    }
+  }
+
+  html {
+    scroll-padding-top: calc(4.5rem + env(safe-area-inset-top, 0px));
+    scroll-padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  body {
+    overflow-wrap: break-word;
+  }
+
+  img,
+  video {
+    max-inline-size: 100%;
+    block-size: auto;
+  }
+
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+
+  p,
+  li {
+    text-wrap: pretty;
+  }
+
+  :where(button, select, textarea, input:not([type="checkbox"], [type="radio"]), [role="button"], nav a) {
+    min-block-size: var(--target-size);
+    min-inline-size: var(--target-size);
+  }
+}
+
 /* LIGHT MODE */
 :root {
   --button-outline: rgba(0,0,0, .10);

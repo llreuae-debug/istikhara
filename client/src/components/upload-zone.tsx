@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react";
-import { Upload, Image as ImageIcon, Loader2 } from "lucide-react";
+import { Upload, Camera, Image as ImageIcon, Loader2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
@@ -77,10 +77,10 @@ export function UploadZone({ onImageSelect, isAnalyzing }: UploadZoneProps) {
       onDrop={handleDrop}
       data-testid="dropzone-upload"
     >
-      <div className="min-h-64 p-8 flex flex-col items-center justify-center">
+      <div className="min-h-64 p-5 sm:p-8 flex flex-col items-center justify-center">
         {isAnalyzing ? (
           <div className="flex flex-col items-center gap-4 text-center">
-            <Loader2 className="w-12 h-12 text-primary animate-spin" data-testid="icon-analyzing" />
+            <Loader2 className="w-12 h-12 text-primary animate-spin" aria-hidden="true" data-testid="icon-analyzing" />
             <p className="text-lg font-medium text-foreground" data-testid="text-analyzing">Analyzing verse...</p>
             <p className="text-sm text-muted-foreground max-w-sm" dir="rtl" data-testid="text-analyzing-urdu">
               جاری ہے تجزیہ... براہ کرم انتظار کریں
@@ -97,15 +97,15 @@ export function UploadZone({ onImageSelect, isAnalyzing }: UploadZoneProps) {
               />
             </div>
             <div className="flex flex-col items-center gap-2">
-              <ImageIcon className="w-8 h-8 text-primary" data-testid="icon-uploaded" />
+              <ImageIcon className="w-8 h-8 text-primary" aria-hidden="true" data-testid="icon-uploaded" />
               <p className="text-sm font-medium text-foreground" data-testid="text-upload-success">Image uploaded</p>
               <p className="text-xs text-muted-foreground" data-testid="text-processing">Processing your request...</p>
             </div>
           </div>
         ) : (
-          <div className="flex flex-col items-center gap-6 text-center">
-            <div className="p-6 rounded-full bg-primary/10">
-              <Upload className="w-12 h-12 text-primary" data-testid="icon-upload-zone" />
+          <div className="flex flex-col items-center gap-6 text-center w-full">
+            <div className="p-5 sm:p-6 rounded-full bg-primary/10">
+              <Upload className="w-10 h-10 sm:w-12 sm:h-12 text-primary" aria-hidden="true" data-testid="icon-upload-zone" />
             </div>
             <div className="space-y-2">
               <h3 className="text-lg font-semibold text-foreground" data-testid="text-upload-title">
@@ -115,7 +115,7 @@ export function UploadZone({ onImageSelect, isAnalyzing }: UploadZoneProps) {
                 قرآنی آیت کی تصویر اپ لوڈ کریں
               </p>
               <p className="text-xs text-muted-foreground max-w-sm mt-4" data-testid="text-upload-hint">
-                Drag and drop an image here, or click to browse
+                Take a photo, browse files, or drag and drop an image here
               </p>
             </div>
             <input
@@ -127,17 +127,46 @@ export function UploadZone({ onImageSelect, isAnalyzing }: UploadZoneProps) {
               disabled={isAnalyzing}
               data-testid="input-file-upload"
             />
-            <label htmlFor="file-upload">
-              <Button
-                variant="default"
-                size="lg"
-                className="cursor-pointer"
-                asChild
-                data-testid="button-browse-file"
-              >
-                <span>Browse Files</span>
-              </Button>
-            </label>
+            <input
+              type="file"
+              id="camera-upload"
+              className="hidden"
+              accept="image/*"
+              capture="environment"
+              onChange={handleFileInput}
+              disabled={isAnalyzing}
+              data-testid="input-camera-upload"
+            />
+            <div className="flex flex-wrap items-center justify-center gap-3 w-full">
+              <label htmlFor="file-upload" className="w-full sm:w-auto">
+                <Button
+                  variant="default"
+                  size="lg"
+                  className="cursor-pointer w-full sm:w-auto gap-2"
+                  asChild
+                  data-testid="button-browse-file"
+                >
+                  <span>
+                    <Upload className="w-4 h-4" aria-hidden="true" />
+                    Browse Files
+                  </span>
+                </Button>
+              </label>
+              <label htmlFor="camera-upload" className="w-full sm:w-auto">
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="cursor-pointer w-full sm:w-auto gap-2"
+                  asChild
+                  data-testid="button-take-photo"
+                >
+                  <span>
+                    <Camera className="w-4 h-4" aria-hidden="true" />
+                    Take Photo
+                  </span>
+                </Button>
+              </label>
+            </div>
           </div>
         )}
       </div>
