@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Info, Settings, Download, X } from "lucide-react";
 import { useApp } from "@/lib/i18n";
+import { trackEvent } from "@/lib/analytics";
 import { Logo } from "./Logo";
 import { LanguageToggle } from "./LanguageToggle";
 
@@ -11,28 +12,31 @@ interface BeforeInstallPromptEvent extends Event {
 }
 
 export function AppHeader() {
-  const { t } = useApp();
+  const { t, uiLang } = useApp();
   const location = useLocation();
-  const isHome = location.pathname === "/";
+  const isHome =
+    location.pathname === "/" ||
+    location.pathname === `/${uiLang}` ||
+    location.pathname === `/${uiLang}/`;
 
   return (
     <header className="sticky top-0 z-30 border-b border-[var(--border-subtle)] bg-[var(--bg-primary)]/80 backdrop-blur-md pt-[env(safe-area-inset-top,0px)]">
       <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between gap-2">
-        <Link to="/" aria-label={t.nav.home} className="inline-flex items-center">
+        <Link to={`/${uiLang}/`} aria-label={t.nav.home} className="inline-flex items-center">
           <Logo size={36} variant={isHome ? "mark" : "horizontal"} />
         </Link>
 
         <nav className="flex items-center gap-2" aria-label="Primary">
           <LanguageToggle />
           <Link
-            to="/settings"
+            to={`/${uiLang}/settings`}
             aria-label={t.nav.settings}
             className="inline-flex items-center justify-center w-10 h-10 rounded-full border border-[var(--border-subtle)] bg-[var(--bg-card)] text-[var(--text-secondary)] hover:text-[var(--accent-gold)] hover:border-[var(--border-gold)] transition-colors"
           >
             <Settings className="w-4 h-4" aria-hidden="true" />
           </Link>
           <Link
-            to="/about"
+            to={`/${uiLang}/about`}
             aria-label={t.nav.about}
             className="inline-flex items-center justify-center w-10 h-10 rounded-full border border-[var(--border-subtle)] bg-[var(--bg-card)] text-[var(--text-secondary)] hover:text-[var(--accent-gold)] hover:border-[var(--border-gold)] transition-colors"
           >
@@ -41,6 +45,37 @@ export function AppHeader() {
         </nav>
       </div>
     </header>
+  );
+}
+
+export function AppFooter() {
+  const { uiLang, t } = useApp();
+  const isUrdu = uiLang === "ur";
+
+  return (
+    <footer className="border-t border-[var(--border-subtle)] bg-[var(--bg-primary)]/70 backdrop-blur-sm mt-auto">
+      <div className="max-w-5xl mx-auto px-4 py-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[var(--text-muted)]">
+        <p className={isUrdu ? "font-urdu-nastaliq text-center sm:text-start" : "text-center sm:text-start"}>
+          {isUrdu
+            ? "استخارہ — Al-Quran Cloud (quran-uthmani, ur.jalandhry, en.sahih) • کوئی لاگ ان نہیں، تمام ڈیٹا صرف آپ کے آلے پر۔"
+            : "Istikhara — Sources: Al-Quran Cloud & Sahih al-Bukhari 1162 • Zero accounts; all notes stay on your device."}
+        </p>
+        <div className="flex flex-wrap items-center justify-center gap-4">
+          <Link to={`/${uiLang}/guide`} className="hover:text-[var(--accent-gold)]">
+            {t.nav.guide}
+          </Link>
+          <Link to={`/${uiLang}/faq`} className="hover:text-[var(--accent-gold)]">
+            FAQ
+          </Link>
+          <Link to={`/${uiLang}/privacy`} className="hover:text-[var(--accent-gold)]">
+            {isUrdu ? "رازداری" : "Privacy"}
+          </Link>
+          <Link to={`/${uiLang}/contact`} className="hover:text-[var(--accent-gold)]">
+            {isUrdu ? "رابطہ" : "Contact"}
+          </Link>
+        </div>
+      </div>
+    </footer>
   );
 }
 
@@ -65,7 +100,10 @@ export function PwaInstallBanner() {
 
   const handleInstall = async () => {
     await deferredPrompt.prompt();
-    await deferredPrompt.userChoice;
+    const res = await deferredPrompt.userChoice;
+    if (res.outcome === "accepted") {
+      trackEvent({ name: "pwa_installed" });
+    }
     setDeferredPrompt(null);
   };
 

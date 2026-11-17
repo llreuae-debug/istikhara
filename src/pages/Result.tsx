@@ -2,19 +2,21 @@ import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useApp } from "@/lib/i18n";
 import { REFLECTION_SET } from "@/content/reflectionSet";
-import { fetchAyahByRef, type FetchedAyah } from "@/lib/quranApi";
+import { getAyah, type FetchedAyah } from "@/lib/quran";
 import { pickRandomItem, secureRandomInt } from "@/lib/random";
+import { trackEvent } from "@/lib/analytics";
 import {
   addHistoryEntry,
   loadIntention,
   updateHistoryEntry,
 } from "@/lib/storage";
 import { GeometricBackground } from "@/components/GeometricBackground";
-import { AppHeader } from "@/components/AppShell";
+import { AppFooter, AppHeader } from "@/components/AppShell";
 import { VerseCard } from "@/components/VerseCard";
+import { Head } from "@/seo/Head";
 
 export default function Result() {
-  const { settings, updateSettings, t } = useApp();
+  const { settings, updateSettings, t, uiLang } = useApp();
   const navigate = useNavigate();
 
   const [ayah, setAyah] = useState<FetchedAyah | null>(null);
@@ -34,8 +36,12 @@ export default function Result() {
           ? pickRandomItem(REFLECTION_SET)
           : secureRandomInt(1, 6236);
 
-      const fetched = await fetchAyahByRef(ref);
+      const fetched = await getAyah(ref);
       setAyah(fetched);
+      trackEvent({
+        name: "verse_revealed",
+        props: { mode: settings.selectionMode },
+      });
 
       const id = `${Date.now()}-${fetched.globalNumber}`;
       setEntryId(id);
@@ -77,6 +83,7 @@ export default function Result() {
 
   return (
     <div className="min-h-dvh flex flex-col">
+      <Head pageKey="result" lang={uiLang} />
       <GeometricBackground brighten />
       <AppHeader />
 
@@ -113,12 +120,13 @@ export default function Result() {
             ayah={ayah}
             isSaved={isSaved}
             onToggleSave={handleToggleSave}
-            onNewIstikhara={() => navigate("/prepare")}
+            onNewIstikhara={() => navigate(`/${uiLang}/prepare`)}
             categoryLabel={t.categories[intention.category]}
             privateNote={intention.note}
           />
         )}
       </main>
+      <AppFooter />
     </div>
   );
 }

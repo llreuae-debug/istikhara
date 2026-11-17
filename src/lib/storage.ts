@@ -19,6 +19,7 @@ export interface AppSettings {
   selectionMode: SelectionMode;
   haptics: boolean;
   animations: boolean;
+  hijriOffset: -1 | 0 | 1;
   offlineDownloaded: boolean;
   completedCount: number;
 }
@@ -56,6 +57,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   selectionMode: "full",
   haptics: true,
   animations: true,
+  hijriOffset: 0,
   offlineDownloaded: false,
   completedCount: 0,
 };

@@ -1,18 +1,23 @@
 import { useEffect, useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import { motion, useReducedMotion } from "framer-motion";
 import {
   Bookmark,
   BookOpen,
+  Check,
+  Copy,
   Download,
+  Film,
   Pause,
   Play,
   RefreshCw,
   Share2,
 } from "lucide-react";
 import { useApp } from "@/lib/i18n";
-import { fetchAyahAudioUrl, type FetchedAyah } from "@/lib/quranApi";
+import { getAudioCdnUrl, getAudioProxyUrl, type FetchedAyah } from "@/lib/quran";
 import type { ReciterEdition } from "@/lib/storage";
 import { downloadVersePdf } from "@/lib/pdf";
+import { trackEvent } from "@/lib/analytics";
 import { PdfTemplate } from "./PdfTemplate";
 import { ShareSheet } from "./ShareSheet";
 
@@ -43,6 +48,7 @@ export function VerseCard({
   const [audioLoading, setAudioLoading] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
   const [pdfBusy, setPdfBusy] = useState(false);
+  const [copiedVerse, setCopiedVerse] = useState(false);
   const [includeNoteInPdf, setIncludeNoteInPdf] = useState(false);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -66,13 +72,20 @@ export function VerseCard({
 
     setAudioLoading(true);
     try {
-      const url = await fetchAyahAudioUrl(ayah.globalNumber, settings.reciter);
+      const url = getAudioCdnUrl(ayah.globalNumber, settings.reciter);
       if (!audioRef.current || audioRef.current.src !== url) {
         audioRef.current?.pause();
         audioRef.current = new Audio(url);
         audioRef.current.onended = () => setPlaying(false);
       }
-      await audioRef.current.play();
+      try {
+        await audioRef.current.play();
+      } catch {
+        const proxyUrl = getAudioProxyUrl(ayah.globalNumber, settings.reciter);
+        audioRef.current = new Audio(proxyUrl);
+        audioRef.current.onended = () => setPlaying(false);
+        await audioRef.current.play();
+      }
       setPlaying(true);
     } catch {
       setPlaying(false);
@@ -86,8 +99,20 @@ export function VerseCard({
     setPdfBusy(true);
     try {
       await downloadVersePdf(pdfNodeRef.current, ayah);
+      trackEvent({ name: "pdf_downloaded" });
     } finally {
       setPdfBusy(false);
+    }
+  };
+
+  const handleCopyVerse = async () => {
+    const text = `${ayah.arabicText} ﴿${ayah.ayahNumber}﴾\n${ayah.urduText}\n${ayah.englishText}\n— ${ayah.surahNameEn} ${ayah.surahNumber}:${ayah.ayahNumber}`;
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedVerse(true);
+      window.setTimeout(() => setCopiedVerse(false), 1800);
+    } catch {
+      // ignore
     }
   };
 
@@ -136,8 +161,16 @@ export function VerseCard({
           </span>
         </header>
 
-        {/* Arabic Quran text with ayah-end marker */}
-        <div className="relative z-10 py-2 text-center">
+        {/* Arabic Quran text with optional Basmala header & ayah-end marker */}
+        <div className="relative z-10 py-2 text-center space-y-3">
+          {ayah.basmalaHeader && (
+            <p
+              className="font-arabic-quran text-lg sm:text-xl text-[var(--accent-gold)]"
+              dir="rtl"
+            >
+              {ayah.basmalaHeader}
+            </p>
+          )}
           <p
             className="font-arabic-quran text-[var(--text-primary)]"
             style={{ fontSize: `${settings.arabicFontSize}px` }}
@@ -217,6 +250,19 @@ export function VerseCard({
 
           <button
             type="button"
+            onClick={handleCopyVerse}
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-[var(--border-gold)] text-sm text-[var(--text-primary)] hover:bg-[var(--bg-elevated)] transition-colors"
+          >
+            {copiedVerse ? (
+              <Check className="w-4 h-4 text-[var(--accent-gold)]" aria-hidden="true" />
+            ) : (
+              <Copy className="w-4 h-4 text-[var(--accent-gold)]" aria-hidden="true" />
+            )}
+            {uiLang === "ur" ? "کاپی" : "Copy"}
+          </button>
+
+          <button
+            type="button"
             onClick={handleDownloadPdf}
             disabled={pdfBusy}
             className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-[var(--border-gold)] text-sm text-[var(--text-primary)] hover:bg-[var(--bg-elevated)] transition-colors"
@@ -224,6 +270,14 @@ export function VerseCard({
             <Download className="w-4 h-4 text-[var(--accent-gold)]" aria-hidden="true" />
             {t.result.downloadPdf}
           </button>
+
+          <Link
+            to={`/${uiLang}/studio?s=${ayah.surahNumber}&a=${ayah.ayahNumber}`}
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-[var(--border-gold)] text-sm text-[var(--text-primary)] hover:bg-[var(--bg-elevated)] transition-colors"
+          >
+            <Film className="w-4 h-4 text-[var(--accent-gold)]" aria-hidden="true" />
+            {uiLang === "ur" ? "ویڈیو بنائیں" : "Create Video"}
+          </Link>
 
           <button
             type="button"

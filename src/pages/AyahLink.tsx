@@ -1,14 +1,16 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useApp } from "@/lib/i18n";
-import { fetchAyahByRef, type FetchedAyah } from "@/lib/quranApi";
+import { getAyah, type FetchedAyah } from "@/lib/quran";
+import { REFLECTION_SET } from "@/content/reflectionSet";
 import { GeometricBackground } from "@/components/GeometricBackground";
-import { AppHeader } from "@/components/AppShell";
+import { AppFooter, AppHeader } from "@/components/AppShell";
 import { VerseCard } from "@/components/VerseCard";
+import { Head } from "@/seo/Head";
 
 export default function AyahLink() {
   const { surah, ayah: ayahParam } = useParams<{ surah: string; ayah: string }>();
-  const { t } = useApp();
+  const { t, uiLang } = useApp();
 
   const [ayah, setAyah] = useState<FetchedAyah | null>(null);
   const [loading, setLoading] = useState(true);
@@ -18,7 +20,7 @@ export default function AyahLink() {
     setLoading(true);
     setError(false);
     try {
-      const fetched = await fetchAyahByRef(`${surah}:${ayahParam}`);
+      const fetched = await getAyah(`${surah}:${ayahParam}`);
       setAyah(fetched);
     } catch {
       setError(true);
@@ -31,8 +33,19 @@ export default function AyahLink() {
     load();
   }, [surah, ayahParam]);
 
+  const inReflectionSet = REFLECTION_SET.includes(`${surah}:${ayahParam}`);
+  const canonicalPath = inReflectionSet
+    ? `/${uiLang}/verses/${surah}-${ayahParam}`
+    : `/${uiLang}/ayah/${surah}/${ayahParam}`;
+
   return (
     <div className="min-h-dvh flex flex-col">
+      <Head
+        pageKey="result"
+        lang={uiLang}
+        robots="noindex, follow"
+        canonicalPath={canonicalPath}
+      />
       <GeometricBackground brighten />
       <AppHeader />
 
@@ -68,7 +81,7 @@ export default function AyahLink() {
             ayah={ayah}
             ctaSlot={
               <Link
-                to="/prepare"
+                to={`/${uiLang}/prepare`}
                 className="inline-flex items-center justify-center px-6 py-3 rounded-xl bg-[var(--gold)] text-[#0A1A2F] font-semibold text-sm hover:bg-[var(--gold-soft)] transition-colors"
               >
                 {t.result.performOwn}

@@ -1,25 +1,51 @@
 import { Link } from "react-router-dom";
-import { BookOpen, History, Sparkles, Sun } from "lucide-react";
+import { BookOpen, Film, History, Sparkles, Sun } from "lucide-react";
 import { useApp } from "@/lib/i18n";
 import { getFormattedDates } from "@/lib/hijri";
+import { ARTICLES } from "@/content/articles";
+import { GUIDE_FAQS } from "@/content/guide";
+import { SITE_CONFIG } from "@/config/site";
 import { GeometricBackground } from "@/components/GeometricBackground";
-import { AppHeader } from "@/components/AppShell";
+import { AppFooter, AppHeader } from "@/components/AppShell";
 import { Logo } from "@/components/Logo";
+import { AnswerSummary } from "@/components/AnswerSummary";
+import { Head } from "@/seo/Head";
+import {
+  buildOrganizationJsonLd,
+  buildWebApplicationJsonLd,
+  buildWebSiteJsonLd,
+} from "@/seo/jsonld";
 
 export default function Home() {
-  const { t, uiLang } = useApp();
-  const dates = getFormattedDates();
+  const { t, uiLang, settings } = useApp();
+  const isUrdu = uiLang === "ur";
+  const dates = getFormattedDates(new Date(), settings.hijriOffset);
 
   return (
     <div className="min-h-dvh flex flex-col">
+      <Head
+        pageKey="home"
+        lang={uiLang}
+        jsonLd={[
+          buildWebSiteJsonLd(uiLang),
+          buildOrganizationJsonLd(),
+          buildWebApplicationJsonLd(uiLang),
+        ]}
+      />
       <GeometricBackground />
       <AppHeader />
 
-      <main className="flex-1 flex flex-col items-center justify-center px-4 py-10 sm:py-14 text-center">
-        <div className="w-full max-w-2xl mx-auto space-y-8">
+      <main className="flex-1 px-4 py-10 sm:py-14 space-y-16">
+        {/* Hero */}
+        <section className="max-w-2xl mx-auto text-center space-y-8">
+          <h1 className="sr-only">
+            {isUrdu
+              ? "استخارہ — قرآنی آیات کے ذریعے الہٰی رہنمائی"
+              : "Istikhara — Receive divine guidance through Quranic verse"}
+          </h1>
+
           <Logo animated variant="stacked" size={88} />
 
-          {/* Bilingual taglines */}
           <div className="space-y-2">
             <p className="font-urdu-nastaliq text-xl sm:text-2xl text-[var(--text-primary)]" dir="rtl">
               قرآنی آیات کے ذریعے الہٰی رہنمائی
@@ -29,17 +55,15 @@ export default function Home() {
             </p>
           </div>
 
-          {/* Hijri + Gregorian Date */}
           <div className="inline-flex flex-wrap items-center justify-center gap-2 px-4 py-2 rounded-full border border-[var(--border-gold)] bg-[var(--bg-card)] text-xs sm:text-sm text-[var(--text-secondary)]">
-            <span>{uiLang === "ur" ? dates.hijriUr : dates.hijriEn}</span>
+            <span>{isUrdu ? dates.hijriUr : dates.hijriEn}</span>
             <span aria-hidden="true" className="text-[var(--accent-gold)]">•</span>
-            <span>{uiLang === "ur" ? dates.gregorianUr : dates.gregorianEn}</span>
+            <span>{isUrdu ? dates.gregorianUr : dates.gregorianEn}</span>
           </div>
 
-          {/* Primary CTA */}
           <div className="pt-2">
             <Link
-              to="/prepare"
+              to={`/${uiLang}/prepare`}
               className="inline-flex items-center justify-center gap-3 px-8 py-4 rounded-2xl bg-[var(--gold)] text-[#0A1A2F] font-semibold text-base sm:text-lg shadow-[0_12px_36px_rgba(201,162,39,0.28)] hover:bg-[var(--gold-soft)] transition-all"
             >
               <Sparkles className="w-5 h-5" aria-hidden="true" />
@@ -51,34 +75,155 @@ export default function Home() {
             {t.home.subtitle}
           </p>
 
-          {/* Secondary navigation cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-2">
             <Link
-              to="/guide"
+              to={`/${uiLang}/guide`}
               className="flex items-center justify-center gap-2 px-4 py-3.5 rounded-xl border border-[var(--border-gold)] bg-[var(--bg-card)] text-sm text-[var(--text-primary)] hover:bg-[var(--bg-elevated)] transition-colors"
             >
               <BookOpen className="w-4 h-4 text-[var(--accent-gold)] shrink-0" aria-hidden="true" />
-              <span>مسنون طریقہ / Sunnah Method</span>
+              <span>{t.home.sunnahMethod}</span>
             </Link>
 
             <Link
-              to="/daily"
+              to={`/${uiLang}/daily`}
               className="flex items-center justify-center gap-2 px-4 py-3.5 rounded-xl border border-[var(--border-gold)] bg-[var(--bg-card)] text-sm text-[var(--text-primary)] hover:bg-[var(--bg-elevated)] transition-colors"
             >
               <Sun className="w-4 h-4 text-[var(--accent-gold)] shrink-0" aria-hidden="true" />
-              <span>آج کی آیت / Verse of the Day</span>
+              <span>{t.home.verseOfDay}</span>
             </Link>
 
             <Link
-              to="/history"
+              to={`/${uiLang}/studio`}
+              className="flex items-center justify-center gap-2 px-4 py-3.5 rounded-xl border border-[var(--border-gold)] bg-[var(--bg-card)] text-sm text-[var(--text-primary)] hover:bg-[var(--bg-elevated)] transition-colors"
+            >
+              <Film className="w-4 h-4 text-[var(--accent-gold)] shrink-0" aria-hidden="true" />
+              <span>{t.nav.studio}</span>
+            </Link>
+
+            <Link
+              to={`/${uiLang}/history`}
               className="flex items-center justify-center gap-2 px-4 py-3.5 rounded-xl border border-[var(--border-gold)] bg-[var(--bg-card)] text-sm text-[var(--text-primary)] hover:bg-[var(--bg-elevated)] transition-colors"
             >
               <History className="w-4 h-4 text-[var(--accent-gold)] shrink-0" aria-hidden="true" />
-              <span>میری آیات / My Verses</span>
+              <span>{t.home.myVerses}</span>
             </Link>
           </div>
-        </div>
+        </section>
+
+        {/* Below-the-fold SEO/AEO Content */}
+        <section className="max-w-4xl mx-auto space-y-10 border-t border-[var(--border-subtle)] pt-12">
+          <div className="space-y-3">
+            <h2 className="font-display-serif text-2xl sm:text-3xl font-semibold text-[var(--accent-gold)]">
+              {isUrdu ? "استخارہ کیا ہے؟" : "What is Istikhara?"}
+            </h2>
+            <AnswerSummary
+              isUrdu={isUrdu}
+              text={
+                isUrdu
+                  ? "استخارہ اللہ تعالیٰ سے کسی اہم فیصلے میں خیر طلب کرنے کا مسنون عمل ہے۔ صحیح بخاری (1162) کے مطابق اس کا طریقہ دو رکعت نفل نماز اور دعائے استخارہ پڑھنا ہے۔ یہ ایپ آپ کو دعا، مسنون طریقہ اور قرآنی آیات پر غور و فکر فراہم کرتی ہے۔"
+                  : "Istikhara is the Sunnah practice of asking Allah for guidance before an important decision by praying two voluntary rak'ahs and reciting the prophetic dua (Sahih al-Bukhari 1162). This app pairs the Sunnah guide with quiet reflection on Quranic verses."
+              }
+            />
+          </div>
+
+          <div className="space-y-4">
+            <h2 className="font-display-serif text-2xl font-semibold text-[var(--accent-gold)]">
+              {isUrdu ? "یہ ایپ کیسے کام کرتی ہے؟" : "How This App Works"}
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {[
+                {
+                  n: "1",
+                  title: isUrdu ? "تیاری اور دعا" : "Prepare & Dua",
+                  desc: isUrdu
+                    ? "وضو، دو رکعت نفل کی یاددہانی اور صحیح بخاری کی دعا پڑھیں۔"
+                    : "Review wudu, pray two rak'ahs, and recite the Bukhari 1162 dua.",
+                },
+                {
+                  n: "2",
+                  title: isUrdu ? "قلب کی توجہ" : "Focus Moment",
+                  desc: isUrdu
+                    ? "درود شریف پڑھتے ہوئے تسبیح کے تین دانوں پر دل مرکوز کریں۔"
+                    : "Recite Durood Sharif and complete the 3-bead quiet focus.",
+                },
+                {
+                  n: "3",
+                  title: isUrdu ? "تدبر، PDF اور ویڈیو" : "Reflect, PDF & Video",
+                  desc: isUrdu
+                    ? "قرآنی آیت مع مستند ترجمہ، تفسیر لنک، PDF اور ویڈیو حاصل کریں۔"
+                    : "Read the verse with verified translations, tafsir link, PDF, or MP4.",
+                },
+              ].map((s) => (
+                <div
+                  key={s.n}
+                  className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-card)] p-5 space-y-2"
+                >
+                  <span className="inline-flex w-8 h-8 rounded-full border border-[var(--gold)] items-center justify-center text-sm font-bold text-[var(--accent-gold)]">
+                    {s.n}
+                  </span>
+                  <h3 className="font-semibold text-[var(--text-primary)]">{s.title}</h3>
+                  <p className="text-xs sm:text-sm text-[var(--text-secondary)]">{s.desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Top 4 Articles */}
+          <div className="space-y-4">
+            <h2 className="font-display-serif text-2xl font-semibold text-[var(--accent-gold)]">
+              {isUrdu ? "رہنما مضامین" : "Essential Guides"}
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {ARTICLES.slice(0, 4).map((a) => (
+                <Link
+                  key={a.slug}
+                  to={`/${uiLang}/${a.slug}`}
+                  className="rounded-xl border border-[var(--border-gold)] bg-[var(--bg-card)] p-4 hover:bg-[var(--bg-elevated)] transition-colors"
+                >
+                  <h3 className="font-medium text-sm sm:text-base text-[var(--text-primary)]">
+                    {isUrdu ? a.titleUr : a.titleEn}
+                  </h3>
+                  <p className="text-xs text-[var(--text-muted)] line-clamp-2 mt-1">
+                    {isUrdu ? a.summaryUr : a.summaryEn}
+                  </p>
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          {/* FAQ Preview */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <h2 className="font-display-serif text-2xl font-semibold text-[var(--accent-gold)]">
+                {isUrdu ? "اکثر پوچھے گئے سوالات" : "Frequently Asked Questions"}
+              </h2>
+              <Link
+                to={`/${uiLang}/faq`}
+                className="text-xs text-[var(--accent-gold)] underline"
+              >
+                {isUrdu ? "تمام سوالات دیکھیں" : "View all FAQs"}
+              </Link>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {GUIDE_FAQS.slice(0, 2).map((f) => (
+                <div
+                  key={f.id}
+                  className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-card)] p-4 space-y-1.5"
+                >
+                  <h3 className="font-medium text-sm text-[var(--text-primary)]">
+                    {isUrdu ? f.questionUr : f.questionEn}
+                  </h3>
+                  <p className="text-xs text-[var(--text-secondary)]">
+                    {isUrdu ? f.answerUr : f.answerEn}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
       </main>
+
+      <AppFooter />
     </div>
   );
 }

@@ -6,6 +6,7 @@ import { useApp } from "@/lib/i18n";
 import { GeometricBackground } from "@/components/GeometricBackground";
 import { BreathingRing } from "@/components/BreathingRing";
 import { TasbihBeads } from "@/components/TasbihBeads";
+import { Head } from "@/seo/Head";
 
 export default function Focus() {
   const { t, settings, uiLang } = useApp();
@@ -17,6 +18,7 @@ export default function Focus() {
 
   return (
     <div className="min-h-dvh flex flex-col items-center justify-center px-4 py-10 text-center">
+      <Head pageKey="focus" lang={uiLang} />
       <GeometricBackground dimmed />
 
       <div className="w-full max-w-md mx-auto space-y-8">
@@ -46,7 +48,7 @@ export default function Focus() {
               type="button"
               initial={animate ? { opacity: 0, y: 8 } : false}
               animate={{ opacity: 1, y: 0 }}
-              onClick={() => navigate("/result", { state: { fresh: true } })}
+              onClick={() => navigate(`/${uiLang}/result`, { state: { fresh: true } })}
               className="inline-flex items-center gap-2 px-7 py-3.5 rounded-2xl bg-[var(--gold)] text-[#0A1A2F] font-semibold text-base shadow-[0_10px_30px_rgba(201,162,39,0.3)] hover:bg-[var(--gold-soft)] transition-colors"
             >
               <Sparkles className="w-4 h-4" aria-hidden="true" />
@@ -55,7 +57,7 @@ export default function Focus() {
           ) : (
             <button
               type="button"
-              onClick={() => navigate("/result", { state: { fresh: true } })}
+              onClick={() => navigate(`/${uiLang}/result`, { state: { fresh: true } })}
               className="text-xs text-[var(--text-muted)] underline underline-offset-4 hover:text-[var(--text-secondary)]"
             >
               {t.focus.skip}

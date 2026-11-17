@@ -1,14 +1,15 @@
 import { useEffect, useState } from "react";
 import { useApp } from "@/lib/i18n";
 import { REFLECTION_SET } from "@/content/reflectionSet";
-import { fetchAyahByRef, type FetchedAyah } from "@/lib/quranApi";
+import { getAyah, type FetchedAyah } from "@/lib/quran";
 import { deterministicDateIndex, getTodayDateKey } from "@/lib/random";
 import { GeometricBackground } from "@/components/GeometricBackground";
-import { AppHeader } from "@/components/AppShell";
+import { AppFooter, AppHeader } from "@/components/AppShell";
 import { VerseCard } from "@/components/VerseCard";
+import { Head } from "@/seo/Head";
 
 export default function Daily() {
-  const { t } = useApp();
+  const { t, uiLang } = useApp();
   const [ayah, setAyah] = useState<FetchedAyah | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -21,7 +22,7 @@ export default function Daily() {
     setLoading(true);
     setError(false);
     try {
-      const fetched = await fetchAyahByRef(ref);
+      const fetched = await getAyah(ref);
       setAyah(fetched);
     } catch {
       setError(true);
@@ -36,6 +37,7 @@ export default function Daily() {
 
   return (
     <div className="min-h-dvh flex flex-col">
+      <Head pageKey="daily" lang={uiLang} />
       <GeometricBackground brighten />
       <AppHeader />
 

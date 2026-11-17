@@ -1,10 +1,802 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>https://istikhara.app/</loc></url>
-  <url><loc>https://istikhara.app/prepare</loc></url>
-  <url><loc>https://istikhara.app/guide</loc></url>
-  <url><loc>https://istikhara.app/daily</loc></url>
-  <url><loc>https://istikhara.app/history</loc></url>
-  <url><loc>https://istikhara.app/settings</loc></url>
-  <url><loc>https://istikhara.app/about</loc></url>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/ur/</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/en/</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/ur/prepare</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/prepare" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/prepare" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/prepare" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/en/prepare</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/prepare" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/prepare" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/prepare" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/ur/daily</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/daily" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/daily" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/daily" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/en/daily</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/daily" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/daily" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/daily" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/ur/studio</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/studio" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/studio" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/studio" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/en/studio</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/studio" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/studio" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/studio" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/ur/guide</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/guide" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/guide" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/guide" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/en/guide</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/guide" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/guide" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/guide" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/ur/dua</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/dua" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/dua" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/dua" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/en/dua</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/dua" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/dua" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/dua" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/ur/faq</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/faq" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/faq" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/faq" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/en/faq</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/faq" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/faq" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/faq" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/ur/verses</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/verses" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/verses" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/verses" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/en/verses</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/verses" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/verses" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/verses" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/ur/istikhara-for-marriage</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/istikhara-for-marriage" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/istikhara-for-marriage" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/istikhara-for-marriage" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/en/istikhara-for-marriage</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/istikhara-for-marriage" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/istikhara-for-marriage" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/istikhara-for-marriage" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/ur/istikhara-for-business</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/istikhara-for-business" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/istikhara-for-business" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/istikhara-for-business" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/en/istikhara-for-business</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/istikhara-for-business" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/istikhara-for-business" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/istikhara-for-business" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/ur/istikhara-for-job</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/istikhara-for-job" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/istikhara-for-job" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/istikhara-for-job" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/en/istikhara-for-job</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/istikhara-for-job" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/istikhara-for-job" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/istikhara-for-job" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/ur/after-istikhara</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/after-istikhara" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/after-istikhara" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/after-istikhara" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/en/after-istikhara</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/after-istikhara" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/after-istikhara" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/after-istikhara" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/ur/misconceptions</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/misconceptions" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/misconceptions" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/misconceptions" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/en/misconceptions</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/misconceptions" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/misconceptions" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/misconceptions" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/ur/quran-and-istikhara</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/quran-and-istikhara" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/quran-and-istikhara" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/quran-and-istikhara" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/en/quran-and-istikhara</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/quran-and-istikhara" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/quran-and-istikhara" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/quran-and-istikhara" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/ur/about</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/about" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/about" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/about" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/en/about</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/about" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/about" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/about" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/ur/privacy</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/privacy" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/privacy" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/privacy" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/en/privacy</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/privacy" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/privacy" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/privacy" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/ur/contact</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/contact" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/contact" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/contact" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/en/contact</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/contact" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/contact" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/contact" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/ur/verses/3-159</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/verses/3-159" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/verses/3-159" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/verses/3-159" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/en/verses/3-159</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/verses/3-159" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/verses/3-159" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/verses/3-159" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/ur/verses/65-3</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/verses/65-3" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/verses/65-3" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/verses/65-3" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/en/verses/65-3</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/verses/65-3" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/verses/65-3" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/verses/65-3" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/ur/verses/2-216</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/verses/2-216" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/verses/2-216" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/verses/2-216" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/en/verses/2-216</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/verses/2-216" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/verses/2-216" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/verses/2-216" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/ur/verses/94-5</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/verses/94-5" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/verses/94-5" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/verses/94-5" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/en/verses/94-5</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/verses/94-5" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/verses/94-5" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/verses/94-5" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/ur/verses/94-6</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/verses/94-6" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/verses/94-6" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/verses/94-6" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/en/verses/94-6</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/verses/94-6" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/verses/94-6" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/verses/94-6" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/ur/verses/13-28</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/verses/13-28" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/verses/13-28" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/verses/13-28" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/en/verses/13-28</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/verses/13-28" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/verses/13-28" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/verses/13-28" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/ur/verses/2-286</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/verses/2-286" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/verses/2-286" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/verses/2-286" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/en/verses/2-286</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/verses/2-286" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/verses/2-286" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/verses/2-286" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/ur/verses/2-153</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/verses/2-153" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/verses/2-153" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/verses/2-153" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/en/verses/2-153</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/verses/2-153" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/verses/2-153" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/verses/2-153" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/ur/verses/3-173</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/verses/3-173" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/verses/3-173" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/verses/3-173" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/en/verses/3-173</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/verses/3-173" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/verses/3-173" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/verses/3-173" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/ur/verses/8-2</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/verses/8-2" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/verses/8-2" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/verses/8-2" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/en/verses/8-2</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/verses/8-2" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/verses/8-2" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/verses/8-2" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/ur/verses/8-46</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/verses/8-46" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/verses/8-46" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/verses/8-46" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/en/verses/8-46</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/verses/8-46" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/verses/8-46" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/verses/8-46" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/ur/verses/9-51</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/verses/9-51" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/verses/9-51" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/verses/9-51" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/en/verses/9-51</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/verses/9-51" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/verses/9-51" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/verses/9-51" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/ur/verses/10-62</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/verses/10-62" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/verses/10-62" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/verses/10-62" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/en/verses/10-62</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/verses/10-62" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/verses/10-62" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/verses/10-62" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/ur/verses/11-88</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/verses/11-88" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/verses/11-88" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/verses/11-88" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/en/verses/11-88</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/verses/11-88" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/verses/11-88" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/verses/11-88" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/ur/verses/12-86</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/verses/12-86" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/verses/12-86" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/verses/12-86" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/en/verses/12-86</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/verses/12-86" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/verses/12-86" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/verses/12-86" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/ur/verses/12-87</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/verses/12-87" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/verses/12-87" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/verses/12-87" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/en/verses/12-87</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/verses/12-87" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/verses/12-87" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/verses/12-87" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/ur/verses/14-12</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/verses/14-12" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/verses/14-12" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/verses/14-12" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/en/verses/14-12</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/verses/14-12" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/verses/14-12" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/verses/14-12" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/ur/verses/16-97</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/verses/16-97" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/verses/16-97" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/verses/16-97" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/en/verses/16-97</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/verses/16-97" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/verses/16-97" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/verses/16-97" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/ur/verses/18-10</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/verses/18-10" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/verses/18-10" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/verses/18-10" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/en/verses/18-10</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/verses/18-10" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/verses/18-10" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/verses/18-10" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/ur/verses/18-24</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/verses/18-24" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/verses/18-24" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/verses/18-24" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/en/verses/18-24</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/verses/18-24" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/verses/18-24" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/verses/18-24" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/ur/verses/20-25</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/verses/20-25" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/verses/20-25" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/verses/20-25" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/en/verses/20-25</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/verses/20-25" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/verses/20-25" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/verses/20-25" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/ur/verses/20-46</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/verses/20-46" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/verses/20-46" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/verses/20-46" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/en/verses/20-46</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/verses/20-46" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/verses/20-46" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/verses/20-46" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/ur/verses/21-87</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/verses/21-87" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/verses/21-87" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/verses/21-87" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/en/verses/21-87</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/verses/21-87" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/verses/21-87" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/verses/21-87" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/ur/verses/25-74</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/verses/25-74" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/verses/25-74" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/verses/25-74" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/en/verses/25-74</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/verses/25-74" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/verses/25-74" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/verses/25-74" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/ur/verses/26-62</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/verses/26-62" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/verses/26-62" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/verses/26-62" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/en/verses/26-62</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/verses/26-62" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/verses/26-62" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/verses/26-62" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/ur/verses/28-24</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/verses/28-24" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/verses/28-24" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/verses/28-24" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/en/verses/28-24</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/verses/28-24" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/verses/28-24" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/verses/28-24" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/ur/verses/29-69</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/verses/29-69" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/verses/29-69" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/verses/29-69" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/en/verses/29-69</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/verses/29-69" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/verses/29-69" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/verses/29-69" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/ur/verses/33-3</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/verses/33-3" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/verses/33-3" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/verses/33-3" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/en/verses/33-3</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/verses/33-3" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/verses/33-3" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/verses/33-3" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/ur/verses/39-36</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/verses/39-36" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/verses/39-36" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/verses/39-36" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/en/verses/39-36</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/verses/39-36" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/verses/39-36" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/verses/39-36" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/ur/verses/39-53</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/verses/39-53" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/verses/39-53" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/verses/39-53" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/en/verses/39-53</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/verses/39-53" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/verses/39-53" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/verses/39-53" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/ur/verses/40-44</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/verses/40-44" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/verses/40-44" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/verses/40-44" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/en/verses/40-44</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/verses/40-44" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/verses/40-44" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/verses/40-44" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/ur/verses/42-38</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/verses/42-38" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/verses/42-38" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/verses/42-38" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/en/verses/42-38</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/verses/42-38" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/verses/42-38" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/verses/42-38" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/ur/verses/48-1</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/verses/48-1" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/verses/48-1" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/verses/48-1" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/en/verses/48-1</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/verses/48-1" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/verses/48-1" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/verses/48-1" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/ur/verses/57-4</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/verses/57-4" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/verses/57-4" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/verses/57-4" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/en/verses/57-4</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/verses/57-4" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/verses/57-4" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/verses/57-4" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/ur/verses/64-11</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/verses/64-11" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/verses/64-11" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/verses/64-11" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/en/verses/64-11</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/verses/64-11" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/verses/64-11" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/verses/64-11" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/ur/verses/65-2</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/verses/65-2" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/verses/65-2" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/verses/65-2" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/en/verses/65-2</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/verses/65-2" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/verses/65-2" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/verses/65-2" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/ur/verses/67-15</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/verses/67-15" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/verses/67-15" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/verses/67-15" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/en/verses/67-15</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/verses/67-15" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/verses/67-15" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/verses/67-15" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/ur/verses/73-9</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/verses/73-9" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/verses/73-9" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/verses/73-9" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/en/verses/73-9</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/verses/73-9" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/verses/73-9" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/verses/73-9" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/ur/verses/93-5</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/verses/93-5" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/verses/93-5" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/verses/93-5" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/en/verses/93-5</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/verses/93-5" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/verses/93-5" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/verses/93-5" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/ur/verses/112-1</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/verses/112-1" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/verses/112-1" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/verses/112-1" />
+  </url>
+  <url>
+    <loc>https://istikhara-quran-app.netlify.app/en/verses/112-1</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://istikhara-quran-app.netlify.app/ur/verses/112-1" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://istikhara-quran-app.netlify.app/en/verses/112-1" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://istikhara-quran-app.netlify.app/ur/verses/112-1" />
+  </url>
 </urlset>

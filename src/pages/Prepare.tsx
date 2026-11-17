@@ -10,6 +10,8 @@ import {
 } from "@/lib/storage";
 import { GeometricBackground } from "@/components/GeometricBackground";
 import { AppHeader } from "@/components/AppShell";
+import { Head } from "@/seo/Head";
+import { trackEvent } from "@/lib/analytics";
 
 const CATEGORIES: IntentionCategory[] = [
   "marriage",
@@ -45,6 +47,7 @@ export default function Prepare() {
 
   return (
     <div className="min-h-dvh flex flex-col">
+      <Head pageKey="prepare" lang={uiLang} />
       <GeometricBackground />
       <AppHeader />
 
@@ -83,7 +86,7 @@ export default function Prepare() {
                 {t.prepare.step1Body}
               </p>
               <Link
-                to="/guide"
+                to={`/${uiLang}/guide`}
                 className="inline-block text-sm text-[var(--accent-gold)] underline underline-offset-4 hover:text-[var(--gold-soft)]"
               >
                 {t.prepare.step1Link}
@@ -213,7 +216,10 @@ export default function Prepare() {
             ) : (
               <button
                 type="button"
-                onClick={() => navigate("/focus")}
+                onClick={() => {
+                  trackEvent({ name: "istikhara_started" });
+                  navigate(`/${uiLang}/focus`);
+                }}
                 className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-[var(--gold)] text-[#0A1A2F] font-semibold text-sm hover:bg-[var(--gold-soft)] transition-colors"
               >
                 {t.prepare.continueToFocus}

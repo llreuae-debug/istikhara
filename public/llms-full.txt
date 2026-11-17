@@ -1,0 +1,65 @@
+# Istikhara — Full Knowledge Summary
+
+# Istikhara — استخارہ
+
+> Receive divine guidance through Quranic verse (قرآنی آیات کے ذریعے الہٰی رہنمائی).
+
+Istikhara is a calm, ad-free, privacy-first web app for Muslims in Pakistan, India, and the diaspora. It teaches the Sunnah Istikhara (two rak'ahs and the dua from Sahih al-Bukhari 1162) and offers quiet Quranic reflection in Urdu and English using verified Al-Quran Cloud editions.
+
+## Key Pages (Urdu & English)
+- Home: https://istikhara-quran-app.netlify.app/ur/ | https://istikhara-quran-app.netlify.app/en/
+- Sunnah Method: https://istikhara-quran-app.netlify.app/ur/guide | https://istikhara-quran-app.netlify.app/en/guide
+- Istikhara Dua: https://istikhara-quran-app.netlify.app/ur/dua | https://istikhara-quran-app.netlify.app/en/dua
+- Reflection Set (40 Verses): https://istikhara-quran-app.netlify.app/ur/verses | https://istikhara-quran-app.netlify.app/en/verses
+- Verse of the Day: https://istikhara-quran-app.netlify.app/ur/daily | https://istikhara-quran-app.netlify.app/en/daily
+- Quran Verse Video Studio: https://istikhara-quran-app.netlify.app/ur/studio | https://istikhara-quran-app.netlify.app/en/studio
+- FAQ: https://istikhara-quran-app.netlify.app/ur/faq | https://istikhara-quran-app.netlify.app/en/faq
+
+
+## Core Principles
+1. Sunnah Istikhara is praying two voluntary rak'ahs and reciting the dua from Sahih al-Bukhari 1162 (https://sunnah.com/bukhari:1162).
+2. Quranic verses shown in the app are strictly for reflection (tadabbur), never labeled good/bad or yes/no.
+3. All Quranic text is sourced from Al-Quran Cloud (quran-uthmani, ur.jalandhry, en.sahih) and linked to https://quran.com for tafsir.
+4. Zero accounts: user intentions and reflections remain strictly in browser localStorage and IndexedDB.
+
+## Curated Reflection References (linked to Quran.com)
+- https://quran.com/3/159
+- https://quran.com/65/3
+- https://quran.com/2/216
+- https://quran.com/94/5
+- https://quran.com/94/6
+- https://quran.com/13/28
+- https://quran.com/2/286
+- https://quran.com/2/153
+- https://quran.com/3/173
+- https://quran.com/8/2
+- https://quran.com/8/46
+- https://quran.com/9/51
+- https://quran.com/10/62
+- https://quran.com/11/88
+- https://quran.com/12/86
+- https://quran.com/12/87
+- https://quran.com/14/12
+- https://quran.com/16/97
+- https://quran.com/18/10
+- https://quran.com/18/24
+- https://quran.com/20/25
+- https://quran.com/20/46
+- https://quran.com/21/87
+- https://quran.com/25/74
+- https://quran.com/26/62
+- https://quran.com/28/24
+- https://quran.com/29/69
+- https://quran.com/33/3
+- https://quran.com/39/36
+- https://quran.com/39/53
+- https://quran.com/40/44
+- https://quran.com/42/38
+- https://quran.com/48/1
+- https://quran.com/57/4
+- https://quran.com/64/11
+- https://quran.com/65/2
+- https://quran.com/67/15
+- https://quran.com/73/9
+- https://quran.com/93/5
+- https://quran.com/112/1

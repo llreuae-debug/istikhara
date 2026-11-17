@@ -5,7 +5,11 @@ export interface FormattedDates {
   gregorianEn: string;
 }
 
-export function getFormattedDates(date: Date = new Date()): FormattedDates {
+export function getFormattedDates(
+  date: Date = new Date(),
+  hijriOffsetDays: -1 | 0 | 1 = 0
+): FormattedDates {
+  const hijriDate = new Date(date.getTime() + hijriOffsetDays * 86_400_000);
   let hijriUr = "";
   let hijriEn = "";
 
@@ -14,23 +18,23 @@ export function getFormattedDates(date: Date = new Date()): FormattedDates {
       day: "numeric",
       month: "long",
       year: "numeric",
-    }).format(date);
+    }).format(hijriDate);
     hijriEn = new Intl.DateTimeFormat("en-US-u-ca-islamic-umalqura", {
       day: "numeric",
       month: "long",
       year: "numeric",
-    }).format(date);
+    }).format(hijriDate);
   } catch {
     hijriUr = new Intl.DateTimeFormat("ur-PK-u-ca-islamic", {
       day: "numeric",
       month: "long",
       year: "numeric",
-    }).format(date);
+    }).format(hijriDate);
     hijriEn = new Intl.DateTimeFormat("en-US-u-ca-islamic", {
       day: "numeric",
       month: "long",
       year: "numeric",
-    }).format(date);
+    }).format(hijriDate);
   }
 
   const gregorianUr = new Intl.DateTimeFormat("ur-PK", {
@@ -45,5 +49,10 @@ export function getFormattedDates(date: Date = new Date()): FormattedDates {
     year: "numeric",
   }).format(date);
 
-  return { hijriUr, hijriEn, gregorianUr, gregorianEn };
+  return {
+    hijriUr: `${hijriUr} (تقریباً)`,
+    hijriEn: `${hijriEn} (approx.)`,
+    gregorianUr,
+    gregorianEn,
+  };
 }

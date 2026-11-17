@@ -9,10 +9,11 @@ import type {
   ThemeMode,
 } from "@/lib/storage";
 import { GeometricBackground } from "@/components/GeometricBackground";
-import { AppHeader } from "@/components/AppShell";
+import { AppFooter, AppHeader } from "@/components/AppShell";
+import { Head } from "@/seo/Head";
 
 export default function Settings() {
-  const { settings, updateSettings, t } = useApp();
+  const { settings, updateSettings, t, uiLang } = useApp();
   const [downloadPct, setDownloadPct] = useState<number | null>(null);
 
   const handleOfflineDownload = async () => {
@@ -27,6 +28,7 @@ export default function Settings() {
 
   return (
     <div className="min-h-dvh flex flex-col">
+      <Head pageKey="settings" lang={uiLang} />
       <GeometricBackground />
       <AppHeader />
 
@@ -151,6 +153,29 @@ export default function Settings() {
                   }`}
                 >
                   {m.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Hijri ±1 day adjustment */}
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-[var(--text-primary)]">
+              {uiLang === "ur" ? "ہجری تاریخ ایڈجسٹمنٹ" : "Hijri Date Adjustment"}
+            </label>
+            <div className="flex gap-2">
+              {([-1, 0, 1] as const).map((offset) => (
+                <button
+                  key={offset}
+                  type="button"
+                  onClick={() => updateSettings({ hijriOffset: offset })}
+                  className={`px-4 py-2 rounded-xl text-sm border transition-colors ${
+                    settings.hijriOffset === offset
+                      ? "bg-[var(--gold)] text-[#0A1A2F] border-[var(--gold)] font-semibold"
+                      : "border-[var(--border-subtle)] text-[var(--text-primary)]"
+                  }`}
+                >
+                  {offset === 0 ? "0" : offset > 0 ? "+1" : "-1"}
                 </button>
               ))}
             </div>
