@@ -53,16 +53,16 @@ async function fetchAudioBuffer(
   reciter: ReciterId,
   signal?: AbortSignal
 ): Promise<AudioBuffer> {
-  // Fast per-ayah MP3s first (everyayah has CORS *, /api/audio proxies with CORS)
+  // Fast per-ayah MP3s: same-origin /api/audio proxy first (reliable & fast), then everyayah/cdn
   const urls = [
-    getEveryAyahUrl(reciter, ayah.surahNumber, ayah.ayahNumber),
     getAudioProxyUrl(ayah.globalNumber, reciter),
+    getEveryAyahUrl(reciter, ayah.surahNumber, ayah.ayahNumber),
     getAudioCdnUrl(ayah.globalNumber, reciter),
   ];
   for (const url of urls) {
     if (signal?.aborted) throw new Error("Export cancelled");
     try {
-      const res = await fetchWithTimeout(url, 12_000, signal);
+      const res = await fetchWithTimeout(url, 8_000, signal);
       if (!res.ok) continue;
       const arr = await res.arrayBuffer();
       if (arr.byteLength < 512) continue;

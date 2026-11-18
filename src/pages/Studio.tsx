@@ -936,7 +936,7 @@ export default function Studio() {
         autoLink.download = filename;
         document.body.appendChild(autoLink);
         autoLink.click();
-        autoLink.remove();
+        setTimeout(() => autoLink.remove(), 1000);
       } else {
         await saveAndShareBlob({
           blob: res.mp4Blob,
