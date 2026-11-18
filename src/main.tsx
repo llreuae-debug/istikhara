@@ -19,6 +19,7 @@ import "@fontsource/reem-kufi/600.css";
 import "@fontsource/aref-ruqaa/400.css";
 import "@fontsource/aref-ruqaa/700.css";
 import "./index.css";
+import "./styles/glass.css";
 import App from "./App";
 
 createRoot(document.getElementById("root")!).render(

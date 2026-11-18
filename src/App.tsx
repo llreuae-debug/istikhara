@@ -16,6 +16,7 @@ import { initAnalytics } from "@/lib/analytics";
 import { isNative } from "@/lib/platform";
 import { adService } from "@/lib/ads/adService";
 import { PwaInstallBanner } from "@/components/AppShell";
+import { GlassDock, LensSvgFilter } from "@/components/glass";
 import { ARTICLES } from "@/content/articles";
 import Home from "@/pages/Home";
 import Guide from "@/pages/Guide";
@@ -37,6 +38,7 @@ const VersesIndex = lazy(() => import("@/pages/VersesIndex"));
 const ArticlePage = lazy(() => import("@/pages/ArticlePage"));
 const Privacy = lazy(() => import("@/pages/Privacy"));
 const Contact = lazy(() => import("@/pages/Contact"));
+const UiKit = lazy(() => import("@/pages/UiKit"));
 
 function RootRedirect() {
   const { settings } = useApp();
@@ -98,6 +100,7 @@ function LocalizedRoutes() {
           <Route path="/about" element={<About />} />
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/contact" element={<Contact />} />
+          <Route path="/dev/ui-kit" element={<UiKit />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>
@@ -176,13 +179,16 @@ export default function App() {
 
   return (
     <AppProvider>
+      <LensSvgFilter />
       <BrowserRouter>
         <NativeBridge />
         <Routes>
           <Route path="/" element={<RootRedirect />} />
+          <Route path="/dev/ui-kit" element={<Suspense fallback={null}><UiKit /></Suspense>} />
           <Route path="/:lang/*" element={<LocalizedRoutes />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
+        <GlassDock />
         <PwaInstallBanner />
       </BrowserRouter>
     </AppProvider>

@@ -13,6 +13,7 @@ import type {
 } from "@/lib/storage";
 import { GeometricBackground } from "@/components/GeometricBackground";
 import { AppFooter, AppHeader } from "@/components/AppShell";
+import { GlassSegmented } from "@/components/glass";
 import { Head } from "@/seo/Head";
 
 export default function Settings() {
@@ -72,28 +73,17 @@ export default function Settings() {
             <label className="block text-sm font-medium text-[var(--text-primary)]">
               {t.settings.theme}
             </label>
-            <div className="flex flex-wrap gap-2">
-              {(
-                [
-                  { id: "dark", label: t.settings.themeDark },
-                  { id: "light", label: t.settings.themeLight },
-                  { id: "auto", label: t.settings.themeAuto },
-                ] as Array<{ id: ThemeMode; label: string }>
-              ).map((item) => (
-                <button
-                  key={item.id}
-                  type="button"
-                  onClick={() => updateSettings({ theme: item.id })}
-                  className={`px-4 py-2 rounded-xl text-sm border transition-colors ${
-                    settings.theme === item.id
-                      ? "bg-[var(--gold)] text-[#0A1A2F] border-[var(--gold)] font-semibold"
-                      : "border-[var(--border-subtle)] text-[var(--text-primary)]"
-                  }`}
-                >
-                  {item.label}
-                </button>
-              ))}
-            </div>
+            <GlassSegmented
+              isRtl={uiLang === "ur"}
+              value={settings.theme}
+              onChange={(id) => updateSettings({ theme: id as ThemeMode })}
+              ariaLabel={t.settings.theme}
+              items={[
+                { id: "dark", label: uiLang === "ur" ? "مڈنائٹ گلاس" : "Midnight Glass" },
+                { id: "light", label: uiLang === "ur" ? "مون لائٹ گلاس" : "Moonlight Glass" },
+                { id: "auto", label: t.settings.themeAuto },
+              ]}
+            />
           </div>
 
           {/* Arabic Font Size */}

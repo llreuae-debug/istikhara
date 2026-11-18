@@ -157,7 +157,7 @@ export function VerseCard({
           clipPath: "inset(0% 0% 0% 0% round 16px)",
         }}
         transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
-        className="relative w-full max-w-3xl mx-auto rounded-2xl border border-[var(--border-gold)] bg-[var(--bg-card)] backdrop-blur-md p-5 sm:p-8 md:p-10 shadow-2xl space-y-6"
+        className="relative w-full max-w-3xl mx-auto rounded-[28px] glass-solid-verse glass-border-mask border border-[var(--border-gold)] p-5 sm:p-8 md:p-10 shadow-2xl space-y-6"
       >
         {/* Inner ornamental hairline */}
         <div

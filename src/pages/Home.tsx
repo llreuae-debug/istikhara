@@ -11,6 +11,7 @@ import { Logo } from "@/components/Logo";
 import { AnswerSummary } from "@/components/AnswerSummary";
 import { StoreBadges } from "@/components/StoreBadges";
 import { AdSlot } from "@/components/AdSlot";
+import { GlassCard } from "@/components/glass";
 import { isNative } from "@/lib/platform";
 import { Head } from "@/seo/Head";
 import {
@@ -38,9 +39,9 @@ export default function Home() {
       <GeometricBackground />
       <AppHeader />
 
-      <main className="flex-1 px-4 py-10 sm:py-14 space-y-16">
+      <main className="flex-1 px-4 py-8 sm:py-12 space-y-14">
         {/* Hero */}
-        <section className="max-w-2xl mx-auto text-center space-y-8">
+        <GlassCard variant="glass-2" className="max-w-2xl mx-auto p-6 sm:p-10 text-center space-y-7">
           <h1 className="sr-only">
             {isUrdu
               ? "استخارہ — قرآنی آیات کے ذریعے الہٰی رہنمائی"
@@ -58,16 +59,16 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="inline-flex flex-wrap items-center justify-center gap-2 px-4 py-2 rounded-full border border-[var(--border-gold)] bg-[var(--bg-card)] text-xs sm:text-sm text-[var(--text-secondary)]">
+          <div className="inline-flex flex-wrap items-center justify-center gap-2 px-4 py-2 rounded-full glass-1 glass-border-mask text-xs sm:text-sm text-[var(--text-secondary)]">
             <span>{isUrdu ? dates.hijriUr : dates.hijriEn}</span>
             <span aria-hidden="true" className="text-[var(--accent-gold)]">•</span>
             <span>{isUrdu ? dates.gregorianUr : dates.gregorianEn}</span>
           </div>
 
-          <div className="pt-2">
+          <div className="pt-1">
             <Link
               to={`/${uiLang}/prepare`}
-              className="inline-flex items-center justify-center gap-3 px-8 py-4 rounded-2xl bg-[var(--gold)] text-[#0A1A2F] font-semibold text-base sm:text-lg shadow-[0_12px_36px_rgba(201,162,39,0.28)] hover:bg-[var(--gold-soft)] transition-all"
+              className="inline-flex items-center justify-center gap-3 px-8 py-4 rounded-full glass-3 glass-lens-glints glass-border-mask glass-cta-gold font-semibold text-base sm:text-lg shadow-[0_12px_36px_rgba(201,162,39,0.28)] hover:scale-[1.02] active:scale-[0.97] transition-transform"
             >
               <Sparkles className="w-5 h-5" aria-hidden="true" />
               <span>استخارہ شروع کریں / Begin Istikhara</span>
@@ -78,10 +79,10 @@ export default function Home() {
             {t.home.subtitle}
           </p>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-1">
             <Link
               to={`/${uiLang}/guide`}
-              className="flex items-center justify-center gap-2 px-4 py-3.5 rounded-xl border border-[var(--border-gold)] bg-[var(--bg-card)] text-sm text-[var(--text-primary)] hover:bg-[var(--bg-elevated)] transition-colors"
+              className="flex items-center justify-center gap-2 px-4 py-3 rounded-[16px] glass-1 glass-border-mask glass-hover-lift text-sm text-[var(--text-primary)]"
             >
               <BookOpen className="w-4 h-4 text-[var(--accent-gold)] shrink-0" aria-hidden="true" />
               <span>{t.home.sunnahMethod}</span>
@@ -89,7 +90,7 @@ export default function Home() {
 
             <Link
               to={`/${uiLang}/daily`}
-              className="flex items-center justify-center gap-2 px-4 py-3.5 rounded-xl border border-[var(--border-gold)] bg-[var(--bg-card)] text-sm text-[var(--text-primary)] hover:bg-[var(--bg-elevated)] transition-colors"
+              className="flex items-center justify-center gap-2 px-4 py-3 rounded-[16px] glass-1 glass-border-mask glass-hover-lift text-sm text-[var(--text-primary)]"
             >
               <Sun className="w-4 h-4 text-[var(--accent-gold)] shrink-0" aria-hidden="true" />
               <span>{t.home.verseOfDay}</span>
@@ -97,7 +98,7 @@ export default function Home() {
 
             <Link
               to={`/${uiLang}/studio`}
-              className="flex items-center justify-center gap-2 px-4 py-3.5 rounded-xl border border-[var(--border-gold)] bg-[var(--bg-card)] text-sm text-[var(--text-primary)] hover:bg-[var(--bg-elevated)] transition-colors"
+              className="flex items-center justify-center gap-2 px-4 py-3 rounded-[16px] glass-1 glass-border-mask glass-hover-lift text-sm text-[var(--text-primary)]"
             >
               <Film className="w-4 h-4 text-[var(--accent-gold)] shrink-0" aria-hidden="true" />
               <span>{t.nav.studio}</span>
@@ -105,13 +106,13 @@ export default function Home() {
 
             <Link
               to={`/${uiLang}/history`}
-              className="flex items-center justify-center gap-2 px-4 py-3.5 rounded-xl border border-[var(--border-gold)] bg-[var(--bg-card)] text-sm text-[var(--text-primary)] hover:bg-[var(--bg-elevated)] transition-colors"
+              className="flex items-center justify-center gap-2 px-4 py-3 rounded-[16px] glass-1 glass-border-mask glass-hover-lift text-sm text-[var(--text-primary)]"
             >
               <History className="w-4 h-4 text-[var(--accent-gold)] shrink-0" aria-hidden="true" />
               <span>{t.home.myVerses}</span>
             </Link>
           </div>
-        </section>
+        </GlassCard>
 
         {/* Below-the-fold SEO/AEO Content */}
         <section className="max-w-4xl mx-auto space-y-10 border-t border-[var(--border-subtle)] pt-12">

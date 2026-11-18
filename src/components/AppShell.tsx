@@ -8,6 +8,7 @@ import { adService } from "@/lib/ads/adService";
 import { Logo } from "./Logo";
 import { LanguageToggle } from "./LanguageToggle";
 import { AndroidSmartBanner, GetAppModal, StoreBadges } from "./StoreBadges";
+import { GlassHeader } from "./glass/GlassHeader";
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -35,41 +36,7 @@ export function AppHeader() {
   return (
     <>
       <AndroidSmartBanner />
-      <header className="sticky top-0 z-30 border-b border-[var(--border-subtle)] bg-[var(--bg-primary)]/80 backdrop-blur-md pt-[env(safe-area-inset-top,0px)]">
-        <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between gap-2">
-          <Link to={`/${uiLang}/`} aria-label={t.nav.home} className="inline-flex items-center">
-            <Logo size={36} variant={isHome ? "mark" : "horizontal"} />
-          </Link>
-
-          <nav className="flex items-center gap-2" aria-label="Primary">
-            {!isNative() && (
-              <button
-                type="button"
-                onClick={() => setAppModalOpen(true)}
-                className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-[var(--border-gold)] bg-[var(--bg-card)] text-xs font-medium text-[var(--accent-gold)] hover:bg-[var(--bg-elevated)] transition-colors"
-              >
-                <Smartphone className="w-3.5 h-3.5" aria-hidden="true" />
-                <span>{uiLang === "ur" ? "ایپ حاصل کریں" : "Get the App"}</span>
-              </button>
-            )}
-            <LanguageToggle />
-            <Link
-              to={`/${uiLang}/settings`}
-              aria-label={t.nav.settings}
-              className="inline-flex items-center justify-center w-10 h-10 rounded-full border border-[var(--border-subtle)] bg-[var(--bg-card)] text-[var(--text-secondary)] hover:text-[var(--accent-gold)] hover:border-[var(--border-gold)] transition-colors"
-            >
-              <Settings className="w-4 h-4" aria-hidden="true" />
-            </Link>
-            <Link
-              to={`/${uiLang}/about`}
-              aria-label={t.nav.about}
-              className="inline-flex items-center justify-center w-10 h-10 rounded-full border border-[var(--border-subtle)] bg-[var(--bg-card)] text-[var(--text-secondary)] hover:text-[var(--accent-gold)] hover:border-[var(--border-gold)] transition-colors"
-            >
-              <Info className="w-4 h-4" aria-hidden="true" />
-            </Link>
-          </nav>
-        </div>
-      </header>
+      <GlassHeader onOpenAppModal={() => setAppModalOpen(true)} />
       <GetAppModal open={appModalOpen} onClose={() => setAppModalOpen(false)} />
     </>
   );
@@ -80,7 +47,7 @@ export function AppFooter() {
   const isUrdu = uiLang === "ur";
 
   return (
-    <footer className="border-t border-[var(--border-subtle)] bg-[var(--bg-primary)]/70 backdrop-blur-sm mt-auto pb-[max(1.5rem,env(safe-area-inset-bottom,0px))]">
+    <footer className="border-t border-[var(--border-subtle)] glass-1 mt-auto pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] md:pb-6">
       <div className="max-w-5xl mx-auto px-4 py-6 space-y-5">
         {!isNative() && (
           <div className="flex flex-col items-center gap-2">

@@ -45,6 +45,7 @@ import { saveAndShareBlob } from "@/lib/nativeFiles";
 import { adService } from "@/lib/ads/adService";
 import { isNative } from "@/lib/platform";
 import { Head } from "@/seo/Head";
+import { GlassSegmented } from "@/components/glass";
 import {
   ARABIC_QURAN_FONTS,
   URDU_FONTS,

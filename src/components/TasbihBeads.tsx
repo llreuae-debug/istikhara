@@ -63,21 +63,21 @@ export function TasbihBeads({ onComplete }: TasbihBeadsProps) {
 
   return (
     <div className="flex flex-col items-center gap-5">
-      {/* 3 bead indicators */}
+      {/* 3 glass orb indicators */}
       <div className="flex items-center gap-3" aria-label={`${count} / 3`}>
         {[0, 1, 2].map((i) => (
           <span
             key={i}
-            className={`w-3.5 h-3.5 rounded-full border transition-all duration-300 ${
+            className={`w-4 h-4 rounded-full transition-all duration-300 ${
               i < count
-                ? "bg-[var(--gold)] border-[var(--gold-soft)] scale-110 shadow-[0_0_12px_rgba(201,162,39,0.65)]"
-                : "border-[var(--border-gold)] bg-transparent"
+                ? "glass-3 glass-lens-glints bg-[var(--gold)]/85 scale-110 shadow-[0_0_14px_rgba(201,162,39,0.7)]"
+                : "glass-1 border border-[var(--border-gold)]"
             }`}
           />
         ))}
       </div>
 
-      {/* Interactive tasbih bead */}
+      {/* Interactive liquid glass orb tasbih bead */}
       <button
         type="button"
         onClick={handleTap}
@@ -86,13 +86,13 @@ export function TasbihBeads({ onComplete }: TasbihBeadsProps) {
         onPointerLeave={cancelHold}
         onPointerCancel={cancelHold}
         aria-label={t.focus.tasbihHint}
-        className={`w-20 h-20 rounded-full border-2 border-[var(--gold)] flex items-center justify-center transition-transform duration-200 select-none ${
+        className={`w-22 h-22 p-5 rounded-full glass-3 glass-lens-glints glass-border-mask flex items-center justify-center transition-transform duration-200 select-none ${
           holding
-            ? "scale-95 bg-[var(--gold)]/25 shadow-[0_0_28px_rgba(201,162,39,0.55)]"
-            : "bg-[var(--bg-card)] hover:scale-105 active:scale-95"
+            ? "scale-95 shadow-[0_0_32px_rgba(201,162,39,0.55)]"
+            : "hover:scale-105 active:scale-90"
         }`}
       >
-        <span className="w-6 h-6 rounded-full bg-gradient-to-br from-[#E6CF7A] to-[#C9A227] shadow-inner" />
+        <span className="w-7 h-7 rounded-full glass-3 bg-gradient-to-br from-[#E6CF7A] to-[#C9A227] shadow-inner" />
       </button>
 
       <p className="text-xs sm:text-sm text-[var(--text-secondary)] text-center max-w-xs">

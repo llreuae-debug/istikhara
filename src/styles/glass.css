@@ -1,0 +1,261 @@
+/* ==========================================================================
+   Istikhara — Liquid Glass Design Tokens & Surfaces
+   Themes: Midnight Glass (dark, default) & Moonlight Glass (light)
+   ========================================================================== */
+
+:root,
+[data-theme="dark"] {
+  --glass-bg-gradient: radial-gradient(circle at 50% 25%, #0b3d2e 0%, #0a1a2f 68%, #071222 100%);
+  --glass-1-bg: rgba(255, 255, 255, 0.06);
+  --glass-2-bg: rgba(255, 255, 255, 0.09);
+  --glass-3-bg: rgba(255, 255, 255, 0.12);
+  --glass-list-bg: rgba(14, 34, 56, 0.84);
+  --glass-solid-verse-bg: rgba(10, 26, 47, 0.94);
+
+  --glass-recessed-bg: rgba(4, 12, 24, 0.42);
+  --glass-recessed-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.42), inset 0 -1px 0 rgba(255, 255, 255, 0.12);
+
+  --glass-border-start: rgba(255, 255, 255, 0.36);
+  --glass-border-end: rgba(255, 255, 255, 0.06);
+  --glass-inner-top: rgba(255, 255, 255, 0.32);
+  --glass-inner-bottom: rgba(0, 0, 0, 0.24);
+  --glass-shadow: 0 10px 30px rgba(0, 0, 0, 0.26), 0 2px 6px rgba(0, 0, 0, 0.14);
+  --glass-shadow-hover: 0 16px 38px rgba(0, 0, 0, 0.34), 0 4px 10px rgba(0, 0, 0, 0.18);
+
+  --glass-tab-muted: rgba(247, 241, 227, 0.58);
+  --glass-tab-active: #FFFDF8;
+  --glass-puddle-bg: rgba(255, 255, 255, 0.10);
+  --glass-specular: rgba(255, 255, 255, 0.24);
+}
+
+[data-theme="light"] {
+  --bg-primary: #E9E9EC;
+  --bg-surface: rgba(255, 255, 255, 0.45);
+  --bg-card: rgba(255, 255, 255, 0.52);
+  --bg-elevated: rgba(255, 255, 255, 0.65);
+  --text-primary: #1B1B1B;
+  --text-secondary: rgba(27, 27, 27, 0.84);
+  --text-muted: rgba(27, 27, 27, 0.62);
+  --border-gold: rgba(154, 118, 16, 0.38);
+  --border-subtle: rgba(27, 27, 27, 0.14);
+  --accent-gold: #8A6708;
+
+  --glass-bg-gradient: linear-gradient(160deg, #E9E9EC 0%, #DFDFE4 52%, #D6D6DA 100%);
+  --glass-1-bg: rgba(255, 255, 255, 0.36);
+  --glass-2-bg: rgba(255, 255, 255, 0.48);
+  --glass-3-bg: rgba(255, 255, 255, 0.58);
+  --glass-list-bg: rgba(247, 247, 249, 0.90);
+  --glass-solid-verse-bg: rgba(255, 253, 248, 0.96);
+
+  --glass-recessed-bg: rgba(190, 192, 200, 0.42);
+  --glass-recessed-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.10), inset 0 -1px 0 rgba(255, 255, 255, 0.65);
+
+  --glass-border-start: rgba(255, 255, 255, 0.72);
+  --glass-border-end: rgba(255, 255, 255, 0.18);
+  --glass-inner-top: rgba(255, 255, 255, 0.75);
+  --glass-inner-bottom: rgba(0, 0, 0, 0.08);
+  --glass-shadow: 0 10px 30px rgba(0, 0, 0, 0.10), 0 2px 6px rgba(0, 0, 0, 0.06);
+  --glass-shadow-hover: 0 16px 36px rgba(0, 0, 0, 0.14), 0 4px 10px rgba(0, 0, 0, 0.08);
+
+  --glass-tab-muted: rgba(27, 27, 27, 0.56);
+  --glass-tab-active: #0D0D10;
+  --glass-puddle-bg: rgba(255, 255, 255, 0.42);
+  --glass-specular: rgba(255, 255, 255, 0.65);
+}
+
+body {
+  background: var(--glass-bg-gradient);
+  background-attachment: fixed;
+}
+
+/* 2.5% subtle noise texture to eliminate gradient banding */
+.glass-noise::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0.025;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='96'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='96' height='96' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+}
+
+/* Glass levels (do NOT set position here so relative/absolute/fixed/sticky utilities always win) */
+.glass-border-mask::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, var(--glass-border-start), var(--glass-border-end));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+.glass-1 {
+  background: var(--glass-1-bg);
+  backdrop-filter: blur(12px) saturate(140%);
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
+  box-shadow: inset 0 1px 0 var(--glass-inner-top), inset 0 -1px 0 var(--glass-inner-bottom), var(--glass-shadow);
+}
+
+.glass-2 {
+  background: var(--glass-2-bg);
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  box-shadow: inset 0 1px 0 var(--glass-inner-top), inset 0 -1px 0 var(--glass-inner-bottom), var(--glass-shadow);
+}
+
+.glass-3 {
+  background: var(--glass-3-bg);
+  backdrop-filter: blur(6px) saturate(165%);
+  -webkit-backdrop-filter: blur(6px) saturate(165%);
+  box-shadow:
+    inset 0 1.5px 1px var(--glass-inner-top),
+    inset 0 -2px 4px var(--glass-inner-bottom),
+    0 6px 18px rgba(0, 0, 0, 0.16),
+    0 1px 3px rgba(0, 0, 0, 0.10);
+}
+
+.glass-list-card {
+  background: var(--glass-list-bg);
+  box-shadow: inset 0 1px 0 var(--glass-inner-top), var(--glass-shadow);
+}
+
+.glass-solid-verse {
+  background: var(--glass-solid-verse-bg);
+  box-shadow: inset 0 1px 0 var(--glass-inner-top), var(--glass-shadow);
+}
+
+.glass-track {
+  background: var(--glass-recessed-bg);
+  backdrop-filter: blur(12px) saturate(140%);
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
+  box-shadow: var(--glass-recessed-shadow), 0 8px 24px rgba(0, 0, 0, 0.14);
+}
+
+/* Orbiting rainbow glints masked strictly to the rim (uses @property so box never rotates) */
+@property --glint-angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+
+@keyframes glass-glint-orbit {
+  from {
+    --glint-angle: 0deg;
+  }
+  to {
+    --glint-angle: 360deg;
+  }
+}
+
+.glass-lens-glints::after {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1.5px;
+  background: conic-gradient(
+    from var(--glint-angle),
+    rgba(230, 207, 122, 0.78) 0deg,
+    rgba(244, 180, 196, 0.44) 72deg,
+    rgba(130, 220, 235, 0.44) 150deg,
+    rgba(195, 165, 240, 0.42) 220deg,
+    rgba(201, 162, 39, 0.82) 295deg,
+    rgba(230, 207, 122, 0.78) 360deg
+  );
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  opacity: var(--glint-opacity, 0.65);
+  animation: glass-glint-orbit var(--glint-duration, 8s) linear infinite;
+}
+
+.glass-cta-gold {
+  background: linear-gradient(135deg, #e6cf7a 0%, #d8b647 52%, #c9a227 100%) !important;
+  color: #0a1a2f !important;
+}
+
+/* Cursor-reactive specular highlight overlay */
+.glass-specular-spot {
+  background: radial-gradient(
+    240px circle at var(--mx, 50%) var(--my, 20%),
+    var(--glass-specular),
+    transparent 65%
+  );
+}
+
+/* Smooth hover lift & RTL/LTR growing gold underline only on hover-capable devices */
+@media (hover: hover) {
+  .glass-hover-lift {
+    transition: transform 200ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 200ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .glass-hover-lift:hover {
+    transform: translateY(-2px);
+    box-shadow: inset 0 1px 0 var(--glass-inner-top), inset 0 -1px 0 var(--glass-inner-bottom), var(--glass-shadow-hover);
+  }
+
+  .glass-link-underline {
+    position: relative;
+  }
+  .glass-link-underline::after {
+    content: "";
+    position: absolute;
+    inset-inline-start: 0;
+    bottom: -2px;
+    width: 100%;
+    height: 1.5px;
+    background: var(--accent-gold);
+    transform: scaleX(0);
+    transform-origin: start;
+    transition: transform 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .glass-link-underline:hover::after {
+    transform: scaleX(1);
+  }
+}
+
+/* Fallback when backdrop-filter is unsupported, reduced transparency, or low-power */
+@supports not (backdrop-filter: blur(1px)) {
+  .glass-1,
+  .glass-2,
+  .glass-3,
+  .glass-track {
+    background: var(--glass-list-bg);
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .glass-1,
+  .glass-2,
+  .glass-3,
+  .glass-track {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background: var(--glass-solid-verse-bg) !important;
+  }
+}
+
+[data-low-power="true"] .glass-1,
+[data-low-power="true"] .glass-2,
+[data-low-power="true"] .glass-3 {
+  backdrop-filter: blur(6px) !important;
+  -webkit-backdrop-filter: blur(6px) !important;
+}
+
+[data-low-power="true"] .glass-lens-glints::after {
+  animation: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .glass-lens-glints::after {
+    animation: none !important;
+  }
+  .glass-hover-lift,
+  .glass-link-underline::after {
+    transition: none !important;
+  }
+}

@@ -10,6 +10,7 @@ import {
 } from "@/lib/storage";
 import { GeometricBackground } from "@/components/GeometricBackground";
 import { AppHeader } from "@/components/AppShell";
+import { GlassCard, GlassChip, GlassSegmented } from "@/components/glass";
 import { Head } from "@/seo/Head";
 import { trackEvent } from "@/lib/analytics";
 
@@ -52,27 +53,28 @@ export default function Prepare() {
       <AppHeader />
 
       <main className="flex-1 max-w-2xl w-full mx-auto px-4 py-8 sm:py-12 space-y-6">
-        {/* Progress indicator */}
-        <div className="space-y-2">
-          <div className="flex items-center justify-between text-xs text-[var(--text-secondary)]">
+        {/* 3-Step Glass Lens Stepper */}
+        <div className="flex flex-col items-center gap-2">
+          <div className="w-full flex items-center justify-between text-xs text-[var(--text-secondary)]">
             <span>{t.prepare.title}</span>
             <span>
               {t.prepare.stepLabel} {step} {t.prepare.of} 3
             </span>
           </div>
-          <div className="grid grid-cols-3 gap-2">
-            {[1, 2, 3].map((s) => (
-              <div
-                key={s}
-                className={`h-1.5 rounded-full transition-colors ${
-                  s <= step ? "bg-[var(--gold)]" : "bg-[var(--border-subtle)]"
-                }`}
-              />
-            ))}
-          </div>
+          <GlassSegmented
+            isRtl={uiLang === "ur"}
+            value={String(step)}
+            onChange={(id) => setStep(Number(id) as 1 | 2 | 3)}
+            ariaLabel={t.prepare.title}
+            items={[
+              { id: "1", label: `1. ${uiLang === "ur" ? "نیت و وضو" : "Wudu"}` },
+              { id: "2", label: `2. ${uiLang === "ur" ? "دعا" : "Dua"}` },
+              { id: "3", label: `3. ${uiLang === "ur" ? "مقصد" : "Intention"}` },
+            ]}
+          />
         </div>
 
-        <section className="rounded-2xl border border-[var(--border-gold)] bg-[var(--bg-card)] backdrop-blur-md p-5 sm:p-8 shadow-xl space-y-6">
+        <GlassCard variant="glass-2" className="p-5 sm:p-8 space-y-6">
           {step === 1 && (
             <div className="space-y-4">
               <h1 className="font-display-serif text-2xl sm:text-3xl font-semibold text-[var(--accent-gold)]">
@@ -101,10 +103,10 @@ export default function Prepare() {
               </h1>
               <p className="text-sm text-[var(--text-secondary)]">{t.prepare.step2Body}</p>
 
-              {/* Arabic Dua with interactive matter phrase */}
+              {/* Arabic Dua on calm near-solid layer (no blur/glints over sacred text) */}
               <div
                 dir="rtl"
-                className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-primary)]/60 p-4 sm:p-5 font-arabic-quran text-xl sm:text-2xl text-[var(--text-primary)] leading-loose text-center"
+                className="rounded-2xl border border-[var(--border-subtle)] glass-solid-verse p-4 sm:p-5 font-arabic-quran text-xl sm:text-2xl text-[var(--text-primary)] leading-loose text-center"
               >
                 <span>{ISTIKHARA_DUA.arabic.beforeMatter}</span>
                 <button
@@ -157,18 +159,13 @@ export default function Prepare() {
                 {CATEGORIES.map((cat) => {
                   const active = intention.category === cat;
                   return (
-                    <button
+                    <GlassChip
                       key={cat}
-                      type="button"
+                      selected={active}
                       onClick={() => updateCategory(cat)}
-                      className={`px-3.5 py-2 rounded-full text-sm border transition-colors ${
-                        active
-                          ? "bg-[var(--gold)] text-[#0A1A2F] border-[var(--gold)] font-semibold"
-                          : "border-[var(--border-gold)] bg-transparent text-[var(--text-primary)] hover:bg-[var(--bg-elevated)]"
-                      }`}
                     >
                       {t.categories[cat]}
-                    </button>
+                    </GlassChip>
                   );
                 })}
               </div>
@@ -227,7 +224,7 @@ export default function Prepare() {
               </button>
             )}
           </div>
-        </section>
+        </GlassCard>
       </main>
     </div>
   );
