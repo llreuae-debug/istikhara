@@ -1,28 +1,55 @@
 import type { FetchedAyah } from "@/lib/quran";
-import { getSafeBox, type PlatformPreset } from "@/config/platforms";
+import { UNIVERSAL_SAFE_BOX } from "@/config/platforms916";
 import { buildSubtitleTimeline, chunkTranslation, type SubtitleCue } from "./subtitles";
 
 export const INTRO_SEC = 1.5;
 export const OUTRO_SEC = 2.5;
+export const AYAH_GAP_SEC = 0.4;
 
-export type VideoLangMode = "ar_ur" | "ar_en" | "ar_ur_en" | "ar";
+export type VideoMode = "urdu-tarjuma" | "urdu-tafseer" | "tafseer-only";
 export type VideoTheme = "midnight_gold" | "emerald" | "ivory";
+export type TafseerAudioMode = "silence" | "repeat_50";
 
-export interface VideoStudioOptions {
-  langMode: VideoLangMode;
+export interface Studio916Options {
+  mode: VideoMode;
   theme: VideoTheme;
-  arabicFontSize: number;
-  showReference: boolean;
+  arabicMaxSize: number; // default 64, min 40
+  urduMaxSize: number; // default 42, min 32
   showQr: boolean;
+  showSurahHeader: boolean;
+  readingSpeed: number; // 1.5..3.5 words/sec, default 2.2
+  tafseerAudio: TafseerAudioMode;
+  tafsirNameUr: string;
+  tafsirAuthorUr: string;
 }
 
-export interface VersePage {
+export interface VerseFrame {
+  kind: "verse";
   ayah: FetchedAyah;
   arabicLines: string[];
+  arabicFontSize: number;
+  urduFontSize: number;
+  cues: SubtitleCue[];
   startSec: number;
   endSec: number;
-  cues: SubtitleCue[];
+  compactHeaderOnly: boolean;
 }
+
+export interface TafseerFrame {
+  kind: "tafseer";
+  ayah: FetchedAyah;
+  headerPreviewLines: string[];
+  tafsirNameUr: string;
+  tafsirAuthorUr: string;
+  paragraphs: string[];
+  fontSize: number;
+  pageNum: number;
+  totalPages: number;
+  startSec: number;
+  endSec: number;
+}
+
+export type TimelineFrame = VerseFrame | TafseerFrame;
 
 export function wrapCanvasText(
   ctx: CanvasRenderingContext2D,
@@ -48,72 +75,158 @@ export function wrapCanvasText(
   return lines;
 }
 
-export function buildVerseTimeline(
+export function autoFitText(
+  ctx: CanvasRenderingContext2D | null,
+  text: string,
+  fontFamily: string,
+  maxSize: number,
+  minSize: number,
+  maxWidth: number,
+  maxLines: number
+): { fontSize: number; lines: string[] } {
+  if (!ctx) {
+    return { fontSize: maxSize, lines: [text] };
+  }
+  for (let size = maxSize; size >= minSize; size -= 2) {
+    ctx.font = `400 ${size}px ${fontFamily}`;
+    const lines = wrapCanvasText(ctx, text, maxWidth);
+    if (lines.length <= maxLines) {
+      return { fontSize: size, lines };
+    }
+  }
+  ctx.font = `400 ${minSize}px ${fontFamily}`;
+  return { fontSize: minSize, lines: wrapCanvasText(ctx, text, maxWidth) };
+}
+
+export function paginateTafseerParagraphs(
+  paragraphs: string[],
+  maxWordsPerPage = 70
+): string[][] {
+  if (paragraphs.length === 0) return [];
+  const pages: string[][] = [];
+  let currentPage: string[] = [];
+  let currentWords = 0;
+
+  const pushSentenceSplit = (para: string) => {
+    const sentences = para.split(/(?<=[۔.!?])\s+/).filter(Boolean);
+    let chunk = "";
+    let chunkWords = 0;
+    for (const s of sentences) {
+      const sw = s.split(/\s+/).filter(Boolean).length;
+      if (chunk && chunkWords + sw > maxWordsPerPage) {
+        if (currentPage.length > 0) {
+          pages.push(currentPage);
+          currentPage = [];
+          currentWords = 0;
+        }
+        pages.push([chunk.trim()]);
+        chunk = s;
+        chunkWords = sw;
+      } else {
+        chunk = chunk ? `${chunk} ${s}` : s;
+        chunkWords += sw;
+      }
+    }
+    if (chunk.trim()) {
+      if (currentWords + chunkWords > maxWordsPerPage && currentPage.length > 0) {
+        pages.push(currentPage);
+        currentPage = [chunk.trim()];
+        currentWords = chunkWords;
+      } else {
+        currentPage.push(chunk.trim());
+        currentWords += chunkWords;
+      }
+    }
+  };
+
+  for (const para of paragraphs) {
+    const wc = para.split(/\s+/).filter(Boolean).length;
+    if (wc > maxWordsPerPage) {
+      pushSentenceSplit(para);
+    } else if (currentWords + wc > maxWordsPerPage && currentPage.length > 0) {
+      pages.push(currentPage);
+      currentPage = [para];
+      currentWords = wc;
+    } else {
+      currentPage.push(para);
+      currentWords += wc;
+    }
+  }
+
+  if (currentPage.length > 0) {
+    pages.push(currentPage);
+  }
+  return pages;
+}
+
+export function build916Timeline(
   ayahs: FetchedAyah[],
   audioDurationsSec: number[],
-  preset: PlatformPreset,
-  options: VideoStudioOptions
-): { pages: VersePage[]; cues: SubtitleCue[]; totalDurationSec: number } {
-  const safe = getSafeBox(preset);
-  const maxTextW = Math.max(240, safe.width - 64);
-
-  // Measure Arabic lines using an offscreen/temporary canvas context
+  selectedTafseerParagraphs: string[],
+  options: Studio916Options
+): {
+  frames: TimelineFrame[];
+  cues: SubtitleCue[];
+  recitationEndSec: number;
+  totalDurationSec: number;
+} {
+  const maxTextW = UNIVERSAL_SAFE_BOX.width - 64; // 806px inside 870px safe box
   const canvas =
     typeof document !== "undefined" ? document.createElement("canvas") : null;
   const ctx = canvas ? canvas.getContext("2d") : null;
-  const fontScale = preset.width / 1080;
-  const arFontPx = Math.round(options.arabicFontSize * fontScale);
-  if (ctx) {
-    ctx.font = `400 ${arFontPx}px 'Amiri Quran', 'Amiri', serif`;
-  }
 
-  const maxLinesPerPage = preset.height >= 1350 ? 6 : 4;
-  const pages: VersePage[] = [];
+  const frames: TimelineFrame[] = [];
   const allCues: SubtitleCue[] = [];
   let cursor = INTRO_SEC;
   let cueIndex = 1;
 
+  // 1. Recitation frames
   for (let idx = 0; idx < ayahs.length; idx++) {
     const ayah = ayahs[idx];
     const dur = Math.max(2.5, audioDurationsSec[idx] || 5);
-    const fullArabic = `${ayah.arabicText} ﴿${ayah.ayahNumber}﴾`;
-    const allLines = ctx
-      ? wrapCanvasText(ctx, fullArabic, maxTextW)
-      : [fullArabic];
+    const fullArabic = `${ayah.arabicText}\u00A0﴿${ayah.ayahNumber}﴾`;
 
-    // Paginate long verses (e.g. 2:255, 2:282)
-    const lineGroups: string[][] = [];
-    for (let l = 0; l < allLines.length; l += maxLinesPerPage) {
-      lineGroups.push(allLines.slice(l, l + maxLinesPerPage));
+    const arFit = autoFitText(
+      ctx,
+      fullArabic,
+      "'Amiri Quran', 'Amiri', serif",
+      options.arabicMaxSize,
+      40,
+      maxTextW,
+      4
+    );
+
+    const urFit = autoFitText(
+      ctx,
+      ayah.urduText,
+      "'Noto Nastaliq Urdu', serif",
+      options.urduMaxSize,
+      32,
+      maxTextW - 32,
+      4
+    );
+
+    const arGroups: string[][] = [];
+    for (let i = 0; i < arFit.lines.length; i += 4) {
+      arGroups.push(arFit.lines.slice(i, i + 4));
     }
 
-    let subtitleText = "";
-    if (options.langMode === "ar_ur") subtitleText = ayah.urduText;
-    else if (options.langMode === "ar_en") subtitleText = ayah.englishText;
-    else if (options.langMode === "ar_ur_en")
-      subtitleText = `${ayah.urduText} — ${ayah.englishText}`;
-
-    const chunks = subtitleText ? chunkTranslation(subtitleText, 10) : [];
-    const totalPageWeight = lineGroups.reduce(
-      (s, g) => s + g.join(" ").length,
-      0
-    );
+    const chunks =
+      options.mode === "tafseer-only" ? [] : chunkTranslation(ayah.urduText, 10);
+    const chunksPerPage = Math.max(1, Math.ceil(chunks.length / arGroups.length));
 
     let pageCursor = cursor;
-    const chunksPerPage = Math.max(
-      1,
-      Math.ceil(chunks.length / Math.max(1, lineGroups.length))
-    );
+    const totalChars = arGroups.reduce((s, g) => s + g.join(" ").length, 0);
 
-    for (let p = 0; p < lineGroups.length; p++) {
-      const weight = lineGroups[p].join(" ").length;
+    for (let p = 0; p < arGroups.length; p++) {
+      const weight = arGroups[p].join(" ").length;
       const pageDur =
-        lineGroups.length === 1
+        arGroups.length === 1
           ? dur
-          : (weight / Math.max(1, totalPageWeight)) * dur;
+          : (weight / Math.max(1, totalChars)) * dur;
       const pageChunks = chunks.slice(
         p * chunksPerPage,
-        p === lineGroups.length - 1 ? chunks.length : (p + 1) * chunksPerPage
+        p === arGroups.length - 1 ? chunks.length : (p + 1) * chunksPerPage
       );
       const pageCues = buildSubtitleTimeline(
         pageChunks,
@@ -122,22 +235,74 @@ export function buildVerseTimeline(
       ).map((c) => ({ ...c, index: cueIndex++ }));
 
       allCues.push(...pageCues);
-      pages.push({
+      frames.push({
+        kind: "verse",
         ayah,
-        arabicLines: lineGroups[p],
+        arabicLines: arGroups[p],
+        arabicFontSize: arFit.fontSize,
+        urduFontSize: urFit.fontSize,
+        cues: pageCues,
         startSec: pageCursor,
         endSec: pageCursor + pageDur,
-        cues: pageCues,
+        compactHeaderOnly: options.mode === "tafseer-only",
       });
       pageCursor += pageDur;
     }
 
     cursor += dur;
+    if (idx < ayahs.length - 1) {
+      cursor += AYAH_GAP_SEC;
+    }
+  }
+
+  const recitationEndSec = cursor;
+
+  // 2. Tafseer pages (Modes B and C)
+  if (
+    (options.mode === "urdu-tafseer" || options.mode === "tafseer-only") &&
+    selectedTafseerParagraphs.length > 0 &&
+    ayahs.length > 0
+  ) {
+    const pages = paginateTafseerParagraphs(selectedTafseerParagraphs, 70);
+    const firstAyah = ayahs[0];
+    const headerPreview = autoFitText(
+      ctx,
+      `${firstAyah.arabicText}\u00A0﴿${firstAyah.ayahNumber}﴾`,
+      "'Amiri Quran', 'Amiri', serif",
+      32,
+      26,
+      maxTextW,
+      2
+    ).lines.slice(0, 2);
+
+    const speed = Math.max(1.5, Math.min(3.5, options.readingSpeed));
+    for (let p = 0; p < pages.length; p++) {
+      const words = pages[p]
+        .join(" ")
+        .split(/\s+/)
+        .filter(Boolean).length;
+      const dur = Math.max(4, words / speed);
+      frames.push({
+        kind: "tafseer",
+        ayah: firstAyah,
+        headerPreviewLines: headerPreview,
+        tafsirNameUr: options.tafsirNameUr,
+        tafsirAuthorUr: options.tafsirAuthorUr,
+        paragraphs: pages[p],
+        fontSize: words > 55 ? 30 : 34,
+        pageNum: p + 1,
+        totalPages: pages.length,
+        startSec: cursor,
+        endSec: cursor + dur,
+      });
+      cursor += dur;
+    }
   }
 
   return {
-    pages,
+    frames,
     cues: allCues,
+    recitationEndSec,
     totalDurationSec: cursor + OUTRO_SEC,
   };
 }

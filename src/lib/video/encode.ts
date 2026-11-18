@@ -10,18 +10,19 @@ import {
 } from "mediabunny";
 import { BRAND } from "@/brand";
 import { getAudioCdnUrl, getAudioProxyUrl, type FetchedAyah } from "@/lib/quran";
-import type { PlatformPreset } from "@/config/platforms";
+import { VIDEO_HEIGHT, VIDEO_WIDTH } from "@/config/platforms916";
 import type { ReciterId } from "@/config/reciters";
 import {
+  AYAH_GAP_SEC,
   INTRO_SEC,
-  OUTRO_SEC,
-  buildVerseTimeline,
-  type VideoStudioOptions,
+  build916Timeline,
+  type Studio916Options,
 } from "./timeline";
-import { renderVideoFrame } from "./render";
+import { render916Frame } from "./render";
 
 export interface EncodeProgress {
   pct: number;
+  etaSec: number;
   stage: string;
 }
 
@@ -41,34 +42,82 @@ async function fetchAudioBuffer(
       const arr = await res.arrayBuffer();
       return await ctx.decodeAudioData(arr);
     } catch {
-      // try fallback proxy
+      // try proxy
     }
   }
   throw new Error("Could not fetch recitation audio");
 }
 
-function buildPaddedAudioBuffer(
+function buildFullAudioBuffer(
   ctx: AudioContext,
   buffers: AudioBuffer[],
-  totalDurationSec: number
+  recitationEndSec: number,
+  totalDurationSec: number,
+  options: Studio916Options
 ): AudioBuffer {
   const sampleRate = ctx.sampleRate;
   const totalSamples = Math.ceil(totalDurationSec * sampleRate);
   const out = ctx.createBuffer(2, totalSamples, sampleRate);
 
-  let offsetSamples = Math.floor(INTRO_SEC * sampleRate);
-  for (const buf of buffers) {
-    for (let ch = 0; ch < 2; ch++) {
-      const src = buf.getChannelData(Math.min(ch, buf.numberOfChannels - 1));
-      const dst = out.getChannelData(ch);
-      dst.set(src, Math.min(offsetSamples, Math.max(0, totalSamples - src.length)));
+  const writeBuffers = (startSec: number, gain: number, maxEndSec: number) => {
+    let offset = Math.floor(startSec * sampleRate);
+    const limitSample = Math.floor(maxEndSec * sampleRate);
+    for (let i = 0; i < buffers.length; i++) {
+      const buf = buffers[i];
+      for (let ch = 0; ch < 2; ch++) {
+        const src = buf.getChannelData(Math.min(ch, buf.numberOfChannels - 1));
+        const dst = out.getChannelData(ch);
+        const writable = Math.min(src.length, Math.max(0, limitSample - offset));
+        for (let s = 0; s < writable; s++) {
+          dst[offset + s] += src[s] * gain;
+        }
+      }
+      offset += buf.length + Math.floor(AYAH_GAP_SEC * sampleRate);
+      if (offset >= limitSample) break;
     }
-    offsetSamples += buf.length;
+  };
+
+  // Primary recitation
+  writeBuffers(INTRO_SEC, 1.0, totalDurationSec);
+
+  // Optional 50%-volume recitation repeat under tafseer pages
+  if (options.tafseerAudio === "repeat_50" && recitationEndSec < totalDurationSec - 2.5) {
+    const outroStart = totalDurationSec - 2.5;
+    let cursor = recitationEndSec;
+    const singleCycleSec =
+      buffers.reduce((s, b) => s + b.duration, 0) +
+      Math.max(0, buffers.length - 1) * AYAH_GAP_SEC;
+    while (cursor < outroStart && singleCycleSec > 0.5) {
+      writeBuffers(cursor, 0.5, outroStart);
+      cursor += singleCycleSec + 0.5;
+    }
   }
+
   return out;
 }
 
-export async function loadRecitationDurations(
+export async function loadQrImage916(
+  ayah: FetchedAyah
+): Promise<HTMLImageElement | null> {
+  try {
+    const url = `${BRAND.appUrl}/ur/ayah/${ayah.surahNumber}/${ayah.ayahNumber}`;
+    const dataUrl = await QRCode.toDataURL(url, {
+      width: 240,
+      margin: 1,
+      color: { dark: "#0A1A2F", light: "#F7F1E3" },
+    });
+    return await new Promise<HTMLImageElement>((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = reject;
+      img.src = dataUrl;
+    });
+  } catch {
+    return null;
+  }
+}
+
+export async function loadRecitationBuffers(
   ayahs: FetchedAyah[],
   reciter: ReciterId
 ): Promise<{ audioBuffers: AudioBuffer[]; durations: number[] }> {
@@ -91,76 +140,61 @@ export async function loadRecitationDurations(
   }
 }
 
-export async function loadQrImage(
-  ayah: FetchedAyah,
-  lang: "ur" | "en"
-): Promise<HTMLImageElement | null> {
-  try {
-    const url = `${BRAND.appUrl}/${lang}/ayah/${ayah.surahNumber}/${ayah.ayahNumber}`;
-    const dataUrl = await QRCode.toDataURL(url, {
-      width: 220,
-      margin: 1,
-      color: { dark: "#0A1A2F", light: "#F7F1E3" },
-    });
-    return await new Promise<HTMLImageElement>((resolve, reject) => {
-      const img = new Image();
-      img.onload = () => resolve(img);
-      img.onerror = reject;
-      img.src = dataUrl;
-    });
-  } catch {
-    return null;
-  }
-}
-
-export async function exportVerseMp4(opts: {
+export async function export916Mp4(opts: {
   ayahs: FetchedAyah[];
-  preset: PlatformPreset;
-  options: VideoStudioOptions;
+  selectedTafseerParagraphs: string[];
+  options: Studio916Options;
   reciter: ReciterId;
-  lang: "ur" | "en";
   partLabel?: string;
   signal?: AbortSignal;
   onProgress?: (p: EncodeProgress) => void;
-}): Promise<{ mp4Blob: Blob; thumbnailBlob: Blob; totalDurationSec: number }> {
-  const { ayahs, preset, options, reciter, lang, partLabel, signal, onProgress } =
-    opts;
+}): Promise<{ mp4Blob: Blob; coverBlob: Blob; totalDurationSec: number }> {
+  const {
+    ayahs,
+    selectedTafseerParagraphs,
+    options,
+    reciter,
+    partLabel,
+    signal,
+    onProgress,
+  } = opts;
 
-  if (document.fonts?.ready) {
-    await document.fonts.ready;
-  }
+  await Promise.all([
+    document.fonts?.load("400 48px 'Amiri Quran'"),
+    document.fonts?.load("400 36px 'Noto Nastaliq Urdu'"),
+    document.fonts?.load("600 28px 'Inter'"),
+  ]);
 
-  onProgress?.({ pct: 5, stage: "Loading recitation audio…" });
-  const { audioBuffers, durations } = await loadRecitationDurations(ayahs, reciter);
-  const { pages, totalDurationSec } = buildVerseTimeline(
+  onProgress?.({ pct: 5, etaSec: 0, stage: "تلاوت لوڈ ہو رہی ہے…" });
+  const { audioBuffers, durations } = await loadRecitationBuffers(ayahs, reciter);
+  const { frames, recitationEndSec, totalDurationSec } = build916Timeline(
     ayahs,
     durations,
-    preset,
+    selectedTafseerParagraphs,
     options
   );
-  const qrImg = await loadQrImage(ayahs[0], lang);
+  const qrImg = await loadQrImage916(ayahs[0]);
 
   const canvas = document.createElement("canvas");
-  canvas.width = preset.width;
-  canvas.height = preset.height;
+  canvas.width = VIDEO_WIDTH;
+  canvas.height = VIDEO_HEIGHT;
   const ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("Canvas 2D unsupported");
 
-  // Capture thumbnail from the first verse frame
-  renderVideoFrame(
+  // Capture 1080x1920 cover image (first verse frame, centered in 3:4 area)
+  render916Frame(
     ctx,
-    INTRO_SEC + 0.35,
+    INTRO_SEC + 0.3,
     totalDurationSec,
-    pages,
-    preset,
+    frames,
     options,
     reciter,
     qrImg,
     partLabel
   );
-  const thumbnailBlob = await new Promise<Blob>((resolve, reject) => {
+  const coverBlob = await new Promise<Blob>((resolve, reject) => {
     canvas.toBlob(
-      (b) => (b ? resolve(b) : reject(new Error("Thumbnail failed"))),
+      (b) => (b ? resolve(b) : reject(new Error("Cover failed"))),
       "image/png"
     );
   });
@@ -170,12 +204,18 @@ export async function exportVerseMp4(opts: {
     (window as unknown as { webkitAudioContext: typeof AudioContext })
       .webkitAudioContext;
   const audioCtx = new AudioCtx();
-  const fullAudio = buildPaddedAudioBuffer(audioCtx, audioBuffers, totalDurationSec);
+  const fullAudio = buildFullAudioBuffer(
+    audioCtx,
+    audioBuffers,
+    recitationEndSec,
+    totalDurationSec,
+    options
+  );
   await audioCtx.close();
 
   const canAvc = await canEncodeVideo("avc", {
-    width: preset.width,
-    height: preset.height,
+    width: VIDEO_WIDTH,
+    height: VIDEO_HEIGHT,
     bitrate: 8_000_000,
   });
   const canAac = await canEncodeAudio("aac", {
@@ -184,8 +224,10 @@ export async function exportVerseMp4(opts: {
     bitrate: 128_000,
   });
 
+  const startedAt = performance.now();
+
   if (canAvc && canAac) {
-    onProgress?.({ pct: 12, stage: "Encoding MP4 (WebCodecs)…" });
+    onProgress?.({ pct: 12, etaSec: 15, stage: "MP4 انکوڈنگ جاری ہے…" });
     const target = new BufferTarget();
     const output = new Output({
       format: new Mp4OutputFormat({ fastStart: "in-memory" }),
@@ -215,38 +257,41 @@ export async function exportVerseMp4(opts: {
     for (let f = 0; f < totalFrames; f++) {
       if (signal?.aborted) throw new Error("Export cancelled");
       const tSec = f * frameDur;
-      renderVideoFrame(
+      render916Frame(
         ctx,
         tSec,
         totalDurationSec,
-        pages,
-        preset,
+        frames,
         options,
         reciter,
         qrImg,
         partLabel
       );
       await videoSource.add(tSec, frameDur);
-      if (f % 15 === 0) {
+      if (f % 15 === 0 && f > 0) {
+        const elapsed = (performance.now() - startedAt) / 1000;
+        const rate = f / elapsed;
+        const etaSec = Math.max(0, Math.round((totalFrames - f) / Math.max(1, rate)));
         onProgress?.({
           pct: 12 + Math.round((f / totalFrames) * 84),
-          stage: `Encoding frame ${f}/${totalFrames}…`,
+          etaSec,
+          stage: `فریم ${f}/${totalFrames}…`,
         });
       }
     }
 
     videoSource.close();
     await output.finalize();
-    onProgress?.({ pct: 100, stage: "Ready" });
+    onProgress?.({ pct: 100, etaSec: 0, stage: "تیار!" });
     return {
       mp4Blob: new Blob([target.buffer!], { type: "video/mp4" }),
-      thumbnailBlob,
+      coverBlob,
       totalDurationSec,
     };
   }
 
-  // Fallback 1: MediaRecorder (+ optional single-threaded ffmpeg.wasm transcode to MP4)
-  onProgress?.({ pct: 15, stage: "Recording video stream…" });
+  // Fallback 1: MediaRecorder (+ optional single-threaded ffmpeg.wasm transcode)
+  onProgress?.({ pct: 15, etaSec: Math.round(totalDurationSec), stage: "ویڈیو ریکارڈ ہو رہی ہے…" });
   const recCtx = new AudioCtx();
   const dest = recCtx.createMediaStreamDestination();
   const srcNode = recCtx.createBufferSource();
@@ -283,12 +328,11 @@ export async function exportVerseMp4(opts: {
         return;
       }
       const elapsed = (performance.now() - startMs) / 1000;
-      renderVideoFrame(
+      render916Frame(
         ctx,
         Math.min(elapsed, totalDurationSec),
         totalDurationSec,
-        pages,
-        preset,
+        frames,
         options,
         reciter,
         qrImg,
@@ -296,7 +340,8 @@ export async function exportVerseMp4(opts: {
       );
       onProgress?.({
         pct: 15 + Math.min(70, Math.round((elapsed / totalDurationSec) * 70)),
-        stage: "Recording video…",
+        etaSec: Math.max(0, Math.round(totalDurationSec - elapsed)),
+        stage: "ریکارڈنگ جاری ہے…",
       });
       if (elapsed < totalDurationSec) {
         requestAnimationFrame(step);
@@ -310,12 +355,12 @@ export async function exportVerseMp4(opts: {
   await recCtx.close();
 
   if (mime.includes("mp4")) {
-    onProgress?.({ pct: 100, stage: "Ready" });
-    return { mp4Blob: recordedBlob, thumbnailBlob, totalDurationSec };
+    onProgress?.({ pct: 100, etaSec: 0, stage: "تیار!" });
+    return { mp4Blob: recordedBlob, coverBlob, totalDurationSec };
   }
 
-  // Fallback 2: lazy-load single-threaded @ffmpeg/ffmpeg to transcode WebM -> MP4
-  onProgress?.({ pct: 88, stage: "Transcoding WebM to MP4…" });
+  // Fallback 2: lazy-load single-threaded @ffmpeg/ffmpeg
+  onProgress?.({ pct: 88, etaSec: 8, stage: "MP4 میں تبدیل ہو رہی ہے…" });
   const { FFmpeg } = await import("@ffmpeg/ffmpeg");
   const { fetchFile } = await import("@ffmpeg/util");
   const ffmpeg = new FFmpeg();
@@ -327,10 +372,10 @@ export async function exportVerseMp4(opts: {
     typeof outData === "string"
       ? new TextEncoder().encode(outData)
       : new Uint8Array(outData);
-  onProgress?.({ pct: 100, stage: "Ready" });
+  onProgress?.({ pct: 100, etaSec: 0, stage: "تیار!" });
   return {
     mp4Blob: new Blob([bytes.buffer], { type: "video/mp4" }),
-    thumbnailBlob,
+    coverBlob,
     totalDurationSec,
   };
 }

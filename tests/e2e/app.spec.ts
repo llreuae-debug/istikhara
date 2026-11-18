@@ -35,6 +35,16 @@ test.describe("Istikhara E2E", () => {
     // Deep link
     await page.goto("/en/ayah/3/159");
     await expect(page.getByText("3:159", { exact: true })).toBeVisible();
+
+    // 9:16 Verse Video Maker (Mode A & Mode B)
+    await page.goto("/ur/studio?s=2&a=286");
+    await expect(
+      page.getByRole("heading", { name: /Quran Verse Video Maker/i })
+    ).toBeVisible();
+    await page.getByRole("button", { name: "اردو تفسیر" }).click();
+    await page.screenshot({
+      path: "/Users/dilnawaz/.gemini/antigravity/brain/7bfb2cd7-98b7-4a05-a3bf-a19e30d4dda4/scratch/mobile-studio-916.png",
+    });
   });
 
   test("desktop 1440x900 accessibility (axe)", async ({ page }) => {
