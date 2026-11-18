@@ -62,6 +62,7 @@ export default defineConfig({
           "**/data/quran/**",
           "**/data/timings/**",
           "**/data/words-ur/**",
+          "**/fonts/*.ttf",
           "**/og/**",
           "**/plugins/**",
         ],
@@ -115,6 +116,7 @@ export default defineConfig({
     },
   },
   build: {
+    target: "es2022",
     outDir: "dist",
     emptyOutDir: true,
     rollupOptions: {

@@ -41,7 +41,8 @@ test.describe("Istikhara E2E", () => {
     await expect(
       page.getByRole("heading", { name: /Quran Verse Video Maker/i })
     ).toBeVisible();
-    await page.getByRole("button", { name: "اردو تفسیر" }).click();
+    await page.getByRole("tab", { name: /متن|Text/i }).click();
+    await page.getByRole("tab", { name: "اردو تفسیر" }).click();
     await page.screenshot({
       path: "/Users/dilnawaz/.gemini/antigravity/brain/7bfb2cd7-98b7-4a05-a3bf-a19e30d4dda4/scratch/mobile-studio-916.png",
     });

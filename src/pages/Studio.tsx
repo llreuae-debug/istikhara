@@ -45,7 +45,37 @@ import { saveAndShareBlob } from "@/lib/nativeFiles";
 import { adService } from "@/lib/ads/adService";
 import { isNative } from "@/lib/platform";
 import { Head } from "@/seo/Head";
-import { GlassSegmented } from "@/components/glass";
+import { GlassCard, GlassSkeleton } from "@/components/glass";
+import { VersePicker } from "@/components/studio/VersePicker";
+import { StudioControlsPanel, type StudioTabId } from "@/components/studio/StudioControlsPanel";
+import { getEveryAyahUrl } from "@/config/reciters";
+import { getTopicBadgeForSurah } from "@/content/hooks";
+import {
+  getTemplateById,
+  type CaptionStyle,
+  type PageTransition,
+  type ShortsTemplate,
+  type TemplateId,
+} from "@/config/templates";
+import {
+  loadCustomHand,
+  saveCustomHand,
+  type CustomHandConfig,
+  type HandAssetId,
+  type HandRenderStyle,
+  type HandSkinTone,
+  type HandStyleMode,
+} from "@/lib/video/handAssets";
+import { shapeWordToGlyphPaths } from "@/lib/video/harfbuzzWrite";
+import { tokenizeQuranWords } from "@/lib/video/wordTiming";
+import type {
+  BgCategory,
+  GradientBgConfig,
+  MediaBgConfig,
+  PaperStyle,
+  SolidBgConfig,
+} from "@/lib/video/backgrounds";
+import type { TextLanguageDisplay } from "@/lib/video/timeline";
 import {
   ARABIC_QURAN_FONTS,
   URDU_FONTS,
@@ -142,6 +172,8 @@ export default function Studio() {
   const [rangeCount, setRangeCount] = useState(1);
   const [ayahs, setAyahs] = useState<FetchedAyah[]>([]);
   const [loadingAyahs, setLoadingAyahs] = useState(true);
+  const [ayahError, setAyahError] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
 
   const [mode, setMode] = useState<VideoMode>(initialPrefs.mode);
   const [tafsirSlug, setTafsirSlug] = useState(initialPrefs.tafsirSlug);
@@ -199,6 +231,62 @@ export default function Studio() {
   const [ayahWordData, setAyahWordData] = useState<
     Array<{ entry?: AyahTimingEntry | null; meaningsUr?: string[] }>
   >([]);
+  const [studioTab, setStudioTab] = useState<StudioTabId>("template");
+  const [templateId, setTemplateId] = useState<TemplateId>("geometric_night");
+  const [bgCategory, setBgCategory] = useState<BgCategory>("geometric");
+  const [paperStyle, setPaperStyle] = useState<PaperStyle>("whiteboard");
+  const [solidConfig, setSolidConfig] = useState<SolidBgConfig>({
+    color: "#0A1A2F",
+    grainPct: 0,
+  });
+  const [gradientConfig, setGradientConfig] = useState<GradientBgConfig>({
+    stops: ["#0A1A2F", "#0B3D2E"],
+    type: "linear",
+    angleDeg: 145,
+    drift: true,
+  });
+  const [mediaConfig, setMediaConfig] = useState<MediaBgConfig>({
+    blurPx: 8,
+    darkenPct: 45,
+    tintColor: "#0A1A2F",
+    tintPct: 15,
+    kenBurns: true,
+    kenBurnsDir: "in",
+    vignette: true,
+    zoom: 1,
+    offsetX: 0,
+    offsetY: 0,
+  });
+  const [handStyle, setHandStyle] = useState<HandStyleMode>("finger_pointer");
+  const [handAsset, setHandAsset] = useState<HandAssetId>("finger");
+  const [handRenderStyle, setHandRenderStyle] = useState<HandRenderStyle>("line_art");
+  const [handSkinTone, setHandSkinTone] = useState<HandSkinTone>("medium");
+  const [handSleeveColor, setHandSleeveColor] = useState("#0B3D2E");
+  const [handScale, setHandScale] = useState(1);
+  const [customHand, setCustomHand] = useState<CustomHandConfig | null>(() => loadCustomHand());
+  const [captionStyle, setCaptionStyle] = useState<CaptionStyle>("boxed");
+  const [transition, setTransition] = useState<PageTransition>("fade");
+  const [languageDisplay, setLanguageDisplay] = useState<TextLanguageDisplay>("ar_ur");
+  const [showReference, setShowReference] = useState(true);
+  const [showProgressBar, setShowProgressBar] = useState(true);
+  const [showHookCard, setShowHookCard] = useState(false);
+  const [hookText, setHookText] = useState("");
+  const [showEndScreen, setShowEndScreen] = useState(true);
+  const [loopFriendly, setLoopFriendly] = useState(false);
+  const [savedPresets, setSavedPresets] = useState<Array<{ name: string; data: Record<string, unknown> }>>(() => {
+    try {
+      const raw = localStorage.getItem("istikhara:studio-presets:v1");
+      return raw ? JSON.parse(raw) : [];
+    } catch {
+      return [];
+    }
+  });
+  const mediaSourceRef = useRef<CanvasImageSource | null>(null);
+  const [mediaDimensions, setMediaDimensions] = useState<{ width: number; height: number }>({
+    width: 1080,
+    height: 1920,
+  });
+  const customHandImgRef = useRef<HTMLImageElement | null>(null);
   const [theme, setTheme] = useState<VideoTheme>(initialPrefs.theme);
   const [arabicMaxSize, setArabicMaxSize] = useState(initialPrefs.arabicMaxSize);
   const [urduMaxSize, setUrduMaxSize] = useState(initialPrefs.urduMaxSize);
@@ -224,6 +312,7 @@ export default function Studio() {
   } | null>(null);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const previewAudioRef = useRef<HTMLAudioElement | null>(null);
   const abortRef = useRef<AbortController | null>(null);
   const qrImgRef = useRef<HTMLImageElement | null>(null);
 
@@ -306,10 +395,16 @@ export default function Studio() {
   useEffect(() => {
     let active = true;
     setLoadingAyahs(true);
+    setAyahError(false);
     getAyahRange(surah, startAyah, rangeCount, script, arabicFont)
       .then((list) => {
         if (!active) return;
+        if (list.length === 0) {
+          setAyahError(true);
+          return;
+        }
         setAyahs(list);
+        setPreviewTime(INTRO_SEC + 0.35);
         if (list[0]) {
           const qrUrl = `${BRAND.appUrl}/ur/ayah/${list[0].surahNumber}/${list[0].ayahNumber}`;
           QRCode.toDataURL(qrUrl, {
@@ -327,13 +422,16 @@ export default function Studio() {
             .catch(() => {});
         }
       })
+      .catch(() => {
+        if (active) setAyahError(true);
+      })
       .finally(() => {
         if (active) setLoadingAyahs(false);
       });
     return () => {
       active = false;
     };
-  }, [surah, startAyah, rangeCount, script, arabicFont]);
+  }, [surah, startAyah, rangeCount, script, arabicFont, retryCount]);
 
   // Load Urdu tafseer when in Modes B or C
   useEffect(() => {
@@ -400,27 +498,181 @@ export default function Studio() {
     return ayahs.map((a) => a.urduText).join(" ");
   }, [voiceMode, mode, selectedTexts, ayahs]);
 
+  const topicBadgeObj = getTopicBadgeForSurah(surah);
+  const activeTpl = getTemplateById(templateId);
+
+  const applyTemplate = (tpl: ShortsTemplate) => {
+    setTemplateId(tpl.id);
+    setBgCategory(tpl.bgCategory);
+    setBgStyle(tpl.bgStyle);
+    setPaperStyle(tpl.paperStyle);
+    setSolidConfig(tpl.solidConfig);
+    setGradientConfig(tpl.gradientConfig);
+    setMediaConfig(tpl.mediaConfig);
+    setTheme(tpl.theme);
+    setScript(tpl.script);
+    setArabicFont(tpl.arabicFont);
+    setUrduFont(tpl.urduFont);
+    setHandStyle(tpl.handStyle);
+    setHandAsset(tpl.handAsset);
+    setHandRenderStyle(tpl.handRenderStyle);
+    setCaptionStyle(tpl.captionStyle);
+    setTransition(tpl.transition);
+  };
+
+  const handleSaveStylePreset = (name: string) => {
+    const data = {
+      templateId,
+      bgCategory,
+      bgStyle,
+      paperStyle,
+      solidConfig,
+      gradientConfig,
+      mediaConfig,
+      theme,
+      script,
+      arabicFont,
+      urduFont,
+      languageDisplay,
+      handStyle,
+      handAsset,
+      handRenderStyle,
+      handSkinTone,
+      handSleeveColor,
+      handScale,
+      captionStyle,
+      transition,
+      arabicMaxSize,
+      urduMaxSize,
+    };
+    const next = [...savedPresets.filter((p) => p.name !== name), { name, data }];
+    setSavedPresets(next);
+    try {
+      localStorage.setItem("istikhara:studio-presets:v1", JSON.stringify(next));
+    } catch {}
+  };
+
+  const handleLoadStylePreset = (name: string) => {
+    const found = savedPresets.find((p) => p.name === name);
+    if (!found) return;
+    const d = found.data as Record<string, any>;
+    if (d.templateId) setTemplateId(d.templateId);
+    if (d.bgCategory) setBgCategory(d.bgCategory);
+    if (d.bgStyle) setBgStyle(d.bgStyle);
+    if (d.paperStyle) setPaperStyle(d.paperStyle);
+    if (d.solidConfig) setSolidConfig(d.solidConfig);
+    if (d.gradientConfig) setGradientConfig(d.gradientConfig);
+    if (d.mediaConfig) setMediaConfig(d.mediaConfig);
+    if (d.theme) setTheme(d.theme);
+    if (d.script) setScript(d.script);
+    if (d.arabicFont) setArabicFont(d.arabicFont);
+    if (d.urduFont) setUrduFont(d.urduFont);
+    if (d.languageDisplay) setLanguageDisplay(d.languageDisplay);
+    if (d.handStyle) setHandStyle(d.handStyle);
+    if (d.handAsset) setHandAsset(d.handAsset);
+    if (d.handRenderStyle) setHandRenderStyle(d.handRenderStyle);
+    if (d.handSkinTone) setHandSkinTone(d.handSkinTone);
+    if (d.handSleeveColor) setHandSleeveColor(d.handSleeveColor);
+    if (typeof d.handScale === "number") setHandScale(d.handScale);
+    if (d.captionStyle) setCaptionStyle(d.captionStyle);
+    if (d.transition) setTransition(d.transition);
+    if (typeof d.arabicMaxSize === "number") setArabicMaxSize(d.arabicMaxSize);
+    if (typeof d.urduMaxSize === "number") setUrduMaxSize(d.urduMaxSize);
+  };
+
+  const loadMediaSource = (blobOrUrl: Blob | string, kind: "image" | "video", credit?: string) => {
+    const url = typeof blobOrUrl === "string" ? blobOrUrl : URL.createObjectURL(blobOrUrl);
+    if (kind === "image") {
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      img.onload = () => {
+        mediaSourceRef.current = img;
+        setMediaDimensions({ width: img.naturalWidth || 1080, height: img.naturalHeight || 1920 });
+        if (credit) setMediaConfig((m) => ({ ...m, credit }));
+      };
+      img.src = url;
+    } else {
+      const vid = document.createElement("video");
+      vid.muted = true;
+      vid.loop = true;
+      vid.playsInline = true;
+      vid.onloadeddata = () => {
+        mediaSourceRef.current = vid;
+        setMediaDimensions({ width: vid.videoWidth || 1080, height: vid.videoHeight || 1920 });
+        vid.play().catch(() => {});
+      };
+      vid.src = url;
+    }
+  };
+
+  useEffect(() => {
+    if (!customHand?.dataUrl) {
+      customHandImgRef.current = null;
+      return;
+    }
+    const img = new Image();
+    img.onload = () => {
+      customHandImgRef.current = img;
+    };
+    img.src = customHand.dataUrl;
+  }, [customHand?.dataUrl]);
+
+  // Pre-shape HarfBuzz word paths whenever Doodle Write or Qalam Write is active
+  useEffect(() => {
+    if (ayahs.length === 0) return;
+    if (handStyle !== "doodle_write" && handStyle !== "qalam_write") return;
+    const allTokens = ayahs.flatMap((a) => tokenizeQuranWords(a.arabicText));
+    Promise.all(allTokens.map((w) => shapeWordToGlyphPaths(w, script))).catch(() => {});
+  }, [ayahs, handStyle, script]);
+
   const options: Studio916Options = {
     mode,
     theme,
+    bgCategory,
     bgStyle,
+    paperStyle,
+    solidConfig,
+    gradientConfig,
+    mediaConfig,
     motionIntensity,
     audioReactiveGlow,
     particles,
     script,
     arabicFont,
     urduFont,
+    languageDisplay,
     pointerStyle,
+    handStyle,
+    handAsset,
+    handRenderStyle,
+    handSkinTone,
+    handSleeveColor,
+    handScale,
     wordByWordMeaning,
     arabicMaxSize,
     urduMaxSize,
     showQr,
     showSurahHeader,
+    showReference,
     readingSpeed,
     tafseerAudio,
     tafsirNameUr: tafsirInfo.nameUr,
     tafsirAuthorUr: tafsirInfo.authorUr,
     voiceCreditUr,
+    templateId,
+    captionStyle,
+    transition,
+    showProgressBar,
+    showHookCard,
+    hookText,
+    topicBadge: topicBadgeObj ? (isUrdu ? topicBadgeObj.ur : topicBadgeObj.en) : undefined,
+    showEndScreen,
+    loopFriendly,
+    kineticSingleWord: activeTpl.kineticSingleWord,
+    ornamentalBorder: activeTpl.ornamentalBorder,
+    doodleBrackets: activeTpl.doodleBrackets,
+    chalkTexture: activeTpl.chalkTexture,
+    photoCredit: mediaConfig.credit,
   };
 
   const previewTimeline = useMemo(() => {
@@ -455,20 +707,42 @@ export default function Studio() {
     selectedTexts,
     mode,
     theme,
+    bgCategory,
     bgStyle,
+    paperStyle,
+    solidConfig,
+    gradientConfig,
+    mediaConfig,
     motionIntensity,
     audioReactiveGlow,
     particles,
     script,
     arabicFont,
     urduFont,
+    languageDisplay,
     pointerStyle,
+    handStyle,
+    handAsset,
+    handRenderStyle,
+    handSkinTone,
+    handSleeveColor,
+    handScale,
     wordByWordMeaning,
     arabicMaxSize,
     urduMaxSize,
     readingSpeed,
     showQr,
     showSurahHeader,
+    showReference,
+    templateId,
+    captionStyle,
+    transition,
+    showProgressBar,
+    showHookCard,
+    hookText,
+    showEndScreen,
+    loopFriendly,
+    isUrdu,
     tafsirInfo,
     voiceMode,
     voiceCreditUr,
@@ -482,7 +756,8 @@ export default function Studio() {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
     let cancelled = false;
-    ensureFontsLoaded().then(() => {
+
+    const drawNow = () => {
       if (cancelled) return;
       render916Frame(
         ctx,
@@ -492,13 +767,49 @@ export default function Studio() {
         options,
         reciter,
         qrImgRef.current,
-        "پریویو"
+        "پریویو",
+        0,
+        {
+          mediaSource: mediaSourceRef.current,
+          mediaDimensions,
+          customHandImg: customHandImgRef.current,
+          customHand,
+        }
       );
-    });
+    };
+
+    // Draw immediately (no blank canvas), then refresh after 150ms debounce & font load
+    drawNow();
+    const timer = window.setTimeout(() => {
+      ensureFontsLoaded().then(drawNow).catch(drawNow);
+    }, playingPreview ? 0 : 150);
+
     return () => {
       cancelled = true;
+      clearTimeout(timer);
     };
-  }, [ayahs, previewTime, previewTimeline, reciter]);
+  }, [ayahs, previewTime, previewTimeline, reciter, playingPreview]);
+
+  // Sync recitation audio with preview Play/Pause
+  useEffect(() => {
+    if (!playingPreview || ayahs.length === 0) {
+      previewAudioRef.current?.pause();
+      return;
+    }
+    const a = ayahs[0];
+    const url = getEveryAyahUrl(reciter, a.surahNumber, a.ayahNumber);
+    if (!previewAudioRef.current) {
+      previewAudioRef.current = new Audio(url);
+    } else if (previewAudioRef.current.src !== url) {
+      previewAudioRef.current.src = url;
+    }
+    if (previewTime >= INTRO_SEC && previewTime <= previewTimeline.recitationEndSec) {
+      previewAudioRef.current.play().catch(() => {});
+    }
+    return () => {
+      previewAudioRef.current?.pause();
+    };
+  }, [playingPreview, reciter, ayahs]);
 
   useEffect(() => {
     if (!playingPreview) return;
@@ -580,6 +891,12 @@ export default function Studio() {
         options,
         reciter,
         voiceover: voiceoverPayload,
+        extras: {
+          mediaSource: mediaSourceRef.current,
+          mediaDimensions,
+          customHandImg: customHandImgRef.current,
+          customHand,
+        },
         signal: controller.signal,
         onProgress: setProgress,
       });
@@ -657,6 +974,12 @@ export default function Studio() {
           selectedTafseerParagraphs: parts[i].paras,
           options,
           reciter,
+          extras: {
+            mediaSource: mediaSourceRef.current,
+            mediaDimensions,
+            customHandImg: customHandImgRef.current,
+            customHand,
+          },
           partLabel: label,
           signal: controller.signal,
           onProgress: (p) =>
@@ -720,7 +1043,7 @@ export default function Studio() {
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
           {/* Left/Top: Live 9:16 Preview */}
-          <section className="lg:col-span-5 rounded-2xl border border-[var(--border-gold)] bg-[var(--bg-card)] p-4 flex flex-col items-center gap-4">
+          <GlassCard variant="glass-2" className="lg:col-span-5 p-4 flex flex-col items-center gap-4">
             <div
               className="relative w-[300px] h-[533px] sm:w-[330px] sm:h-[587px] rounded-xl overflow-hidden border border-[var(--border-subtle)]"
             >
@@ -730,6 +1053,25 @@ export default function Studio() {
                 height={VIDEO_HEIGHT}
                 className="w-full h-full block"
               />
+              {loadingAyahs && (
+                <div className="absolute inset-0 z-20 flex items-center justify-center bg-[#0A1A2F]/80 p-6">
+                  <GlassSkeleton className="w-full h-48" />
+                </div>
+              )}
+              {ayahError && !loadingAyahs && (
+                <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 bg-[#0A1A2F]/90 p-6 text-center">
+                  <p className="text-sm text-red-200">
+                    {isUrdu ? "آیت لوڈ نہیں ہو سکی" : "Could not load verse"}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setRetryCount((c) => c + 1)}
+                    className="px-4 py-2 rounded-xl bg-[var(--gold)] text-[#0A1A2F] text-xs font-semibold"
+                  >
+                    {isUrdu ? "دوبارہ کوشش کریں" : "Retry"}
+                  </button>
+                </div>
+              )}
               <SafeZoneOverlay platform={platform} visible={showSafeZone} />
             </div>
 
@@ -771,500 +1113,130 @@ export default function Studio() {
                 </label>
               </div>
             </div>
-          </section>
+          </GlassCard>
 
           {/* Right/Bottom: Studio Controls */}
-          <section className="lg:col-span-7 rounded-2xl border border-[var(--border-gold)] bg-[var(--bg-card)] p-5 space-y-5">
+          <GlassCard variant="glass-2" className="lg:col-span-7 p-5 space-y-5">
             {/* Verse & Range Picker */}
-            <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
-              <label className="sm:col-span-2 text-xs space-y-1">
-                <span>سورۃ / Surah</span>
-                <select
-                  value={surah}
-                  onChange={(e) => {
-                    setSurah(Number(e.target.value));
-                    setStartAyah(1);
-                  }}
-                  className="w-full rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-primary)] px-3 py-2.5 text-sm"
-                >
-                  {surahs.length > 0 ? (
-                    surahs.map((s) => (
-                      <option key={s.number} value={s.number}>
-                        {s.number}. {s.name} — {s.englishName}
-                      </option>
-                    ))
-                  ) : (
-                    <option value={surah}>2. سُورَةُ البَقَرَةِ — Al-Baqara</option>
-                  )}
-                </select>
-              </label>
+            <VersePicker
+              surahs={surahs}
+              surah={surah}
+              startAyah={startAyah}
+              rangeCount={rangeCount}
+              onChangeSurah={setSurah}
+              onChangeStartAyah={setStartAyah}
+              onChangeRange={setRangeCount}
+            />
 
-              <label className="text-xs space-y-1">
-                <span>آیت / Ayah</span>
-                <input
-                  type="number"
-                  min={1}
-                  max={286}
-                  value={startAyah}
-                  onChange={(e) => setStartAyah(Math.max(1, Number(e.target.value) || 1))}
-                  className="w-full rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-primary)] px-3 py-2.5 text-sm"
-                />
-              </label>
-
-              <label className="text-xs space-y-1">
-                <span>تعداد / Range (1–5)</span>
-                <input
-                  type="number"
-                  min={1}
-                  max={5}
-                  value={rangeCount}
-                  onChange={(e) =>
-                    setRangeCount(Math.max(1, Math.min(5, Number(e.target.value) || 1)))
-                  }
-                  className="w-full rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-primary)] px-3 py-2.5 text-sm"
-                />
-              </label>
-            </div>
-
-            {/* Video Mode */}
-            <div className="space-y-1.5">
-              <span className="block text-xs text-[var(--text-secondary)]">
-                ویڈیو موڈ / Video Mode
-              </span>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                {(
-                  [
-                    { id: "urdu-tarjuma", label: "اردو ترجمہ" },
-                    { id: "urdu-tafseer", label: "اردو تفسیر" },
-                    { id: "tafseer-only", label: "صرف تفسیر" },
-                  ] as Array<{ id: VideoMode; label: string }>
-                ).map((m) => (
-                  <button
-                    key={m.id}
-                    type="button"
-                    onClick={() => setMode(m.id)}
-                    className={`px-3 py-2.5 rounded-xl text-sm border transition-colors ${
-                      mode === m.id
-                        ? "bg-[var(--gold)] text-[#0A1A2F] border-[var(--gold)] font-semibold"
-                        : "border-[var(--border-subtle)] text-[var(--text-primary)]"
-                    }`}
-                  >
-                    {m.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Tafseer Source & Paragraph Excerpt Picker (Modes B & C) */}
-            {mode !== "urdu-tarjuma" && (
-              <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-primary)]/50 p-4 space-y-3">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <label className="text-xs space-y-1">
-                    <span>تفسیر ماخذ / Tafseer Source</span>
-                    <select
-                      value={tafsirSlug}
-                      onChange={(e) => setTafsirSlug(e.target.value)}
-                      className="w-full rounded-xl border border-[var(--border-gold)] bg-[var(--bg-primary)] px-3 py-2 text-sm"
-                    >
-                      {URDU_TAFSIRS.map((t) => (
-                        <option key={t.slug} value={t.slug}>
-                          {t.nameUr} — {t.authorUr}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-
-                  <label className="text-xs space-y-1">
-                    <span>پڑھنے کی رفتار ({readingSpeed.toFixed(1)} الفاظ/سیکنڈ)</span>
-                    <input
-                      type="range"
-                      min={1.5}
-                      max={3.5}
-                      step={0.1}
-                      value={readingSpeed}
-                      onChange={(e) => setReadingSpeed(Number(e.target.value))}
-                      className="w-full accent-[#C9A227]"
-                    />
-                  </label>
-                </div>
-
-                {tafseerMissing ? (
-                  <p className="text-xs text-amber-300 font-urdu-nastaliq">
-                    اس آیت کی تفسیر اس ماخذ میں دستیاب نہیں — براہ کرم اوپر سے کوئی دوسرا تفسیر ماخذ منتخب کریں۔
-                  </p>
-                ) : (
-                  <div className="space-y-2 max-h-52 overflow-y-auto pr-1">
-                    {tafseerParagraphs.map((p) => {
-                      const checked = selectedIndices.includes(p.index);
-                      const estSec = Math.max(4, Math.round(p.wordCount / readingSpeed));
-                      return (
-                        <label
-                          key={p.index}
-                          className="flex items-start gap-2.5 rounded-lg border border-[var(--border-subtle)] p-2.5 text-xs cursor-pointer"
-                        >
-                          <input
-                            type="checkbox"
-                            checked={checked}
-                            onChange={() =>
-                              setSelectedIndices((prev) =>
-                                prev.includes(p.index)
-                                  ? prev.filter((x) => x !== p.index)
-                                  : [...prev, p.index].sort((a, b) => a - b)
-                              )
-                            }
-                            className="mt-1 accent-[#C9A227]"
-                          />
-                          <div className="space-y-1 flex-1">
-                            <p className="font-urdu-nastaliq text-[var(--text-primary)] line-clamp-2" dir="rtl">
-                              {p.text}
-                            </p>
-                            <span className="text-[11px] text-[var(--text-muted)]">
-                              {p.wordCount} words • ~{estSec}s
-                            </span>
-                          </div>
-                        </label>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Platform, Reciter, Theme */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <label className="text-xs space-y-1">
-                <span>Preview Platform</span>
-                <select
-                  value={platformId}
-                  onChange={(e) => setPlatformId(e.target.value as Platform916Id)}
-                  className="w-full rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-primary)] px-2.5 py-2 text-sm"
-                >
-                  {PLATFORMS_916.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {isUrdu ? p.labelUr : p.labelEn}
-                    </option>
-                  ))}
-                </select>
-              </label>
-
-              <label className="text-xs space-y-1">
-                <span>قاری / Reciter</span>
-                <select
-                  value={reciter}
-                  onChange={(e) => setReciter(e.target.value as ReciterId)}
-                  className="w-full rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-primary)] px-2.5 py-2 text-sm"
-                >
-                  {RECITERS.map((r) => (
-                    <option key={r.id} value={r.id}>
-                      {isUrdu ? r.nameUr : r.nameEn}{" "}
-                      {r.wordTimed ? "✓ لفظ بہ لفظ" : ""}
-                    </option>
-                  ))}
-                </select>
-                {previewTimeline.frames.some(
-                  (f) => f.kind === "verse" && f.approximateSync
-                ) && (
-                  <span className="block text-[11px] text-amber-300">
-                    اندازاً ہم آہنگی / approximate sync
-                  </span>
-                )}
-              </label>
-
-              <label className="text-xs space-y-1">
-                <span>تھیم / Theme</span>
-                <select
-                  value={theme}
-                  onChange={(e) => setTheme(e.target.value as VideoTheme)}
-                  className="w-full rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-primary)] px-2.5 py-2 text-sm"
-                >
-                  <option value="midnight_gold">Midnight Gold</option>
-                  <option value="emerald">Emerald</option>
-                  <option value="ivory">Ivory</option>
-                  <option value="royal_blue">Royal Blue</option>
-                </select>
-              </label>
-            </div>
-
-            {/* Script & Fonts */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <label className="text-xs space-y-1">
-                <span>رسم الخط / Script</span>
-                <select
-                  value={script}
-                  onChange={(e) => {
-                    const next = e.target.value as QuranScript;
-                    setScript(next);
-                    setArabicFont(getDefaultArabicFont(next));
-                  }}
-                  className="w-full rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-primary)] px-2.5 py-2 text-sm"
-                >
-                  <option value="indopak">انڈو پاک (IndoPak)</option>
-                  <option value="madani">مدنی / عثمانی (Madani)</option>
-                </select>
-              </label>
-
-              <label className="text-xs space-y-1">
-                <span>عربی فونٹ / Arabic Font</span>
-                <select
-                  value={arabicFont}
-                  onChange={(e) => setArabicFont(e.target.value as ArabicFontId)}
-                  className="w-full rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-primary)] px-2.5 py-2 text-sm"
-                >
-                  {Object.values(ARABIC_QURAN_FONTS)
-                    .filter((f) => !f.script || f.script === script)
-                    .map((f) => (
-                      <option key={f.id} value={f.id}>
-                        {isUrdu ? f.labelUr : f.labelEn}
-                      </option>
-                    ))}
-                </select>
-              </label>
-
-              <label className="text-xs space-y-1">
-                <span>اردو فونٹ / Urdu Font</span>
-                <select
-                  value={urduFont}
-                  onChange={(e) => setUrduFont(e.target.value as UrduFontId)}
-                  className="w-full rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-primary)] px-2.5 py-2 text-sm"
-                >
-                  {Object.values(URDU_FONTS).map((f) => (
-                    <option key={f.id} value={f.id}>
-                      {isUrdu ? f.labelUr : f.labelEn}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            </div>
-
-            {/* Hand Reading Pointer & Word Meaning */}
-            <details className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-primary)]/40 p-3 space-y-3" open>
-              <summary className="cursor-pointer text-xs font-semibold text-[var(--accent-gold)]">
-                پڑھنے کا اشارہ اور لفظی ترجمہ / Hand Reading
-              </summary>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-                <label className="text-xs space-y-1">
-                  <span>پڑھنے کا اشارہ / Pointer Style</span>
-                  <select
-                    value={pointerStyle}
-                    onChange={(e) => setPointerStyle(e.target.value as PointerStyle)}
-                    className="w-full rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-primary)] px-2.5 py-2 text-sm"
-                  >
-                    <option value="hand">☝ ہاتھ (Gold Line-Art Hand)</option>
-                    <option value="qalam">✒ قلم (Calligraphy Qalam)</option>
-                    <option value="underline">انڈرلائن (Gold Underline)</option>
-                    <option value="glow">صرف روشنی (Glow Only)</option>
-                    <option value="off">بند (Off)</option>
-                  </select>
-                </label>
-
-                <label className="inline-flex items-center gap-2 text-xs cursor-pointer pt-4">
-                  <input
-                    type="checkbox"
-                    checked={wordByWordMeaning}
-                    onChange={(e) => setWordByWordMeaning(e.target.checked)}
-                    className="accent-[#C9A227]"
-                  />
-                  <span>لفظی ترجمہ / Word-by-Word Urdu Meaning</span>
-                </label>
-              </div>
-            </details>
-
-            {/* Animated Geometric Backgrounds */}
-            <details className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-primary)]/40 p-3 space-y-3">
-              <summary className="cursor-pointer text-xs font-semibold text-[var(--accent-gold)]">
-                پس منظر اور حرکت / Animated Geometric Background
-              </summary>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-                <label className="text-xs space-y-1">
-                  <span>پس منظر انداز / Pattern Style</span>
-                  <select
-                    value={bgStyle}
-                    onChange={(e) => setBgStyle(e.target.value as BgStyle)}
-                    className="w-full rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-primary)] px-2.5 py-2 text-sm"
-                  >
-                    <option value="girih">گرہ ستارہ جال (Girih Star Lattice)</option>
-                    <option value="rosette">۱۲-کونہ گلِ منڈالا (Rosette Mandala)</option>
-                    <option value="hexagonal">شش پہلو عربیسک (Hexagonal Arabesque)</option>
-                    <option value="mihrab">محرابِ مسجد (Mihrab Arch)</option>
-                    <option value="night_dome">شبِ گنبد (Night Dome)</option>
-                  </select>
-                </label>
-
-                <label className="text-xs space-y-1">
-                  <span>حرکت کی شدت / Motion Intensity</span>
-                  <select
-                    value={motionIntensity}
-                    onChange={(e) => setMotionIntensity(e.target.value as MotionIntensity)}
-                    className="w-full rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-primary)] px-2.5 py-2 text-sm"
-                  >
-                    <option value="calm">پُرسکون (Calm)</option>
-                    <option value="medium">متوسط (Medium)</option>
-                    <option value="vivid">متحرک (Vivid)</option>
-                  </select>
-                </label>
-              </div>
-              <div className="flex flex-wrap gap-4 text-xs pt-1">
-                <label className="inline-flex items-center gap-1.5 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={audioReactiveGlow}
-                    onChange={(e) => setAudioReactiveGlow(e.target.checked)}
-                    className="accent-[#C9A227]"
-                  />
-                  <span>تلاوت کے ساتھ ہلکی چمک (Audio-Reactive Glow)</span>
-                </label>
-                <label className="inline-flex items-center gap-1.5 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={particles}
-                    onChange={(e) => setParticles(e.target.checked)}
-                    className="accent-[#C9A227]"
-                  />
-                  <span>نورانی ذرات (Light Particles)</span>
-                </label>
-              </div>
-            </details>
-
-            {/* Urdu Voiceover */}
-            <details className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-primary)]/40 p-3 space-y-3">
-              <summary className="cursor-pointer text-xs font-semibold text-[var(--accent-gold)]">
-                آواز (اردو وائس اوور) / Urdu Voiceover
-              </summary>
-              <div className="space-y-3 pt-2">
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                  {(
-                    [
-                      { id: "none", label: "صرف تلاوت" },
-                      { id: "ai-translation", label: "AI ترجمہ آواز" },
-                      { id: "ai-tafseer", label: "AI تفسیر آواز" },
-                      { id: "record", label: "میری اپنی آواز" },
-                    ] as Array<{ id: VoiceMode; label: string }>
-                  ).map((vm) => (
-                    <button
-                      key={vm.id}
-                      type="button"
-                      onClick={() => setVoiceMode(vm.id)}
-                      className={`px-2.5 py-2 rounded-xl text-xs border transition-colors ${
-                        voiceMode === vm.id
-                          ? "bg-[var(--gold)] text-[#0A1A2F] border-[var(--gold)] font-semibold"
-                          : "border-[var(--border-subtle)] text-[var(--text-primary)]"
-                      }`}
-                    >
-                      {vm.label}
-                    </button>
-                  ))}
-                </div>
-
-                {(voiceMode === "ai-translation" || voiceMode === "ai-tafseer") && (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                    <label className="space-y-1">
-                      <span>AI آواز منتخب کریں</span>
-                      <select
-                        value={voiceId}
-                        onChange={(e) => setVoiceId(e.target.value)}
-                        className="w-full rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-primary)] px-2.5 py-2 text-sm"
-                      >
-                        {URDU_VOICES.map((v) => (
-                          <option key={v.id} value={v.id}>
-                            {isUrdu ? v.labelUr : v.labelEn}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-                    <label className="space-y-1">
-                      <span>رفتار / Speed ({voiceRate.toFixed(2)}x)</span>
-                      <input
-                        type="range"
-                        min={VOICE_RATE_MIN}
-                        max={VOICE_RATE_MAX}
-                        step={0.05}
-                        value={voiceRate}
-                        onChange={(e) => setVoiceRate(Number(e.target.value))}
-                        className="w-full accent-[#C9A227]"
-                      />
-                    </label>
-                  </div>
-                )}
-
-                {voiceMode === "record" && (
-                  <div className="space-y-2">
-                    <label className="block text-xs space-y-1">
-                      <span>آپ کا نام (اختیاری — کریڈٹ کے لیے)</span>
-                      <input
-                        type="text"
-                        value={userVoiceName}
-                        onChange={(e) => setUserVoiceName(e.target.value)}
-                        placeholder={isUrdu ? "مثلاً: محمد علی" : "e.g. Muhammad Ali"}
-                        className="w-full rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-primary)] px-3 py-2 text-xs"
-                      />
-                    </label>
-                    <VoiceRecorder
-                      promptText={voicePromptText}
-                      isUrdu={isUrdu}
-                      onRecorded={setRecordedVoice}
-                    />
-                  </div>
-                )}
-              </div>
-            </details>
-
-            {/* Sliders & Toggles */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-              <label className="space-y-1">
-                <span>عربی سائز ({arabicMaxSize}px)</span>
-                <input
-                  type="range"
-                  min={40}
-                  max={64}
-                  value={arabicMaxSize}
-                  onChange={(e) => setArabicMaxSize(Number(e.target.value))}
-                  className="w-full accent-[#C9A227]"
-                />
-              </label>
-              <label className="space-y-1">
-                <span>اردو سائز ({urduMaxSize}px)</span>
-                <input
-                  type="range"
-                  min={32}
-                  max={42}
-                  value={urduMaxSize}
-                  onChange={(e) => setUrduMaxSize(Number(e.target.value))}
-                  className="w-full accent-[#C9A227]"
-                />
-              </label>
-            </div>
-
-            <div className="flex flex-wrap gap-4 text-xs">
-              <label className="inline-flex items-center gap-1.5 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={showQr}
-                  onChange={(e) => setShowQr(e.target.checked)}
-                />
-                QR Code
-              </label>
-              <label className="inline-flex items-center gap-1.5 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={showSurahHeader}
-                  onChange={(e) => setShowSurahHeader(e.target.checked)}
-                />
-                Surah Header
-              </label>
-              {mode !== "urdu-tarjuma" && (
-                <label className="inline-flex items-center gap-2">
-                  <span>تفسیر آڈیو:</span>
-                  <select
-                    value={tafseerAudio}
-                    onChange={(e) => setTafseerAudio(e.target.value as TafseerAudioMode)}
-                    className="rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-primary)] px-2 py-1 text-xs"
-                  >
-                    <option value="silence">خاموشی (Silence)</option>
-                    <option value="repeat_50">تلاوت 50% والیوم</option>
-                  </select>
-                </label>
-              )}
-            </div>
+            <StudioControlsPanel
+              isUrdu={isUrdu}
+              isRtl={isUrdu}
+              activeTab={studioTab}
+              onChangeTab={setStudioTab}
+              templateId={templateId}
+              onApplyTemplate={applyTemplate}
+              onResetTemplate={() => applyTemplate(activeTpl)}
+              bgCategory={bgCategory}
+              setBgCategory={setBgCategory}
+              bgStyle={bgStyle}
+              setBgStyle={setBgStyle}
+              theme={theme}
+              setTheme={setTheme}
+              paperStyle={paperStyle}
+              setPaperStyle={setPaperStyle}
+              solidConfig={solidConfig}
+              setSolidConfig={setSolidConfig}
+              gradientConfig={gradientConfig}
+              setGradientConfig={setGradientConfig}
+              mediaConfig={mediaConfig}
+              setMediaConfig={setMediaConfig}
+              onLoadMediaSource={loadMediaSource}
+              motionIntensity={motionIntensity}
+              setMotionIntensity={setMotionIntensity}
+              audioReactiveGlow={audioReactiveGlow}
+              setAudioReactiveGlow={setAudioReactiveGlow}
+              particles={particles}
+              setParticles={setParticles}
+              script={script}
+              setScript={setScript}
+              arabicFont={arabicFont}
+              setArabicFont={setArabicFont}
+              urduFont={urduFont}
+              setUrduFont={setUrduFont}
+              arabicMaxSize={arabicMaxSize}
+              setArabicMaxSize={setArabicMaxSize}
+              urduMaxSize={urduMaxSize}
+              setUrduMaxSize={setUrduMaxSize}
+              languageDisplay={languageDisplay}
+              setLanguageDisplay={setLanguageDisplay}
+              wordByWordMeaning={wordByWordMeaning}
+              setWordByWordMeaning={setWordByWordMeaning}
+              captionStyle={captionStyle}
+              setCaptionStyle={setCaptionStyle}
+              showReference={showReference}
+              setShowReference={setShowReference}
+              mode={mode}
+              setMode={setMode}
+              tafsirSlug={tafsirSlug}
+              setTafsirSlug={setTafsirSlug}
+              tafseerParagraphs={tafseerParagraphs}
+              selectedIndices={selectedIndices}
+              setSelectedIndices={setSelectedIndices}
+              tafseerMissing={tafseerMissing}
+              handStyle={handStyle}
+              setHandStyle={setHandStyle}
+              handAsset={handAsset}
+              setHandAsset={setHandAsset}
+              handRenderStyle={handRenderStyle}
+              setHandRenderStyle={setHandRenderStyle}
+              handSkinTone={handSkinTone}
+              setHandSkinTone={setHandSkinTone}
+              handSleeveColor={handSleeveColor}
+              setHandSleeveColor={setHandSleeveColor}
+              handScale={handScale}
+              setHandScale={setHandScale}
+              customHand={customHand}
+              onUpdateCustomHand={setCustomHand}
+              reciter={reciter}
+              setReciter={setReciter}
+              approximateSync={ayahWordData.some((d) => !d.entry)}
+              voiceMode={voiceMode}
+              setVoiceMode={setVoiceMode}
+              voiceId={voiceId}
+              setVoiceId={setVoiceId}
+              voiceRate={voiceRate}
+              setVoiceRate={setVoiceRate}
+              userVoiceName={userVoiceName}
+              setUserVoiceName={setUserVoiceName}
+              voicePromptText={voicePromptText}
+              onRecordedVoice={setRecordedVoice}
+              tafseerAudio={tafseerAudio}
+              setTafseerAudio={setTafseerAudio}
+              platformId={platformId}
+              setPlatformId={setPlatformId}
+              showQr={showQr}
+              setShowQr={setShowQr}
+              showHookCard={showHookCard}
+              setShowHookCard={setShowHookCard}
+              hookText={hookText}
+              setHookText={setHookText}
+              showProgressBar={showProgressBar}
+              setShowProgressBar={setShowProgressBar}
+              transition={transition}
+              setTransition={setTransition}
+              showEndScreen={showEndScreen}
+              setShowEndScreen={setShowEndScreen}
+              loopFriendly={loopFriendly}
+              setLoopFriendly={setLoopFriendly}
+              filenamePreview={
+                primaryAyah
+                  ? `Istikhara_${primaryAyah.surahNumber}-${primaryAyah.ayahNumber}_${script}_9x16.mp4`
+                  : "Istikhara_9x16.mp4"
+              }
+              onSaveStylePreset={handleSaveStylePreset}
+              savedPresets={savedPresets}
+              onLoadStylePreset={handleLoadStylePreset}
+            />
 
             {/* Length warning */}
             {exceedsDuration && platform.maxDurationSec && (
@@ -1452,7 +1424,7 @@ export default function Studio() {
                 </div>
               </div>
             )}
-          </section>
+          </GlassCard>
         </div>
       </main>
 

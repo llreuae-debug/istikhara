@@ -15,7 +15,23 @@ import {
   type WordTimingTuple,
 } from "./wordTiming";
 import type { PointerStyle } from "./pointers";
-import type { BgStyle, MotionIntensity, VideoTheme } from "./backgrounds";
+import type {
+  BgCategory,
+  BgStyle,
+  GradientBgConfig,
+  MediaBgConfig,
+  MotionIntensity,
+  PaperStyle,
+  SolidBgConfig,
+  VideoTheme,
+} from "./backgrounds";
+import type {
+  HandAssetId,
+  HandRenderStyle,
+  HandSkinTone,
+  HandStyleMode,
+} from "./handAssets";
+import type { CaptionStyle, PageTransition, TemplateId } from "@/config/templates";
 
 export type { VideoTheme };
 
@@ -25,28 +41,56 @@ export const AYAH_GAP_SEC = 0.4;
 
 export type VideoMode = "urdu-tarjuma" | "urdu-tafseer" | "tafseer-only";
 export type TafseerAudioMode = "silence" | "repeat_50";
+export type TextLanguageDisplay = "ar_ur" | "ar_en" | "ar_both" | "ar_only";
 
 export interface Studio916Options {
   mode: VideoMode;
   theme: VideoTheme;
+  bgCategory?: BgCategory;
   bgStyle?: BgStyle;
+  paperStyle?: PaperStyle;
+  solidConfig?: SolidBgConfig;
+  gradientConfig?: GradientBgConfig;
+  mediaConfig?: MediaBgConfig;
   motionIntensity?: MotionIntensity;
   audioReactiveGlow?: boolean;
   particles?: boolean;
   script?: QuranScript;
   arabicFont?: ArabicFontId;
   urduFont?: UrduFontId;
+  languageDisplay?: TextLanguageDisplay;
   pointerStyle?: PointerStyle;
+  handStyle?: HandStyleMode;
+  handAsset?: HandAssetId;
+  handRenderStyle?: HandRenderStyle;
+  handSkinTone?: HandSkinTone;
+  handSleeveColor?: string;
+  handScale?: number;
   wordByWordMeaning?: boolean;
   arabicMaxSize: number; // default 64, min 40
   urduMaxSize: number; // default 42, min 32
   showQr: boolean;
   showSurahHeader: boolean;
+  showReference?: boolean;
   readingSpeed: number; // 1.5..3.5 words/sec, default 2.2
   tafseerAudio: TafseerAudioMode;
   tafsirNameUr: string;
   tafsirAuthorUr: string;
   voiceCreditUr?: string;
+  templateId?: TemplateId;
+  captionStyle?: CaptionStyle;
+  transition?: PageTransition;
+  showProgressBar?: boolean;
+  showHookCard?: boolean;
+  hookText?: string;
+  topicBadge?: string;
+  showEndScreen?: boolean;
+  loopFriendly?: boolean;
+  kineticSingleWord?: boolean;
+  ornamentalBorder?: boolean;
+  doodleBrackets?: boolean;
+  chalkTexture?: boolean;
+  photoCredit?: string;
 }
 
 export interface VerseFrame {
@@ -64,6 +108,8 @@ export interface VerseFrame {
   wordTimings: WordTimingTuple[];
   approximateSync: boolean;
   pageIndex: number;
+  ayahIndex?: number;
+  totalAyahs?: number;
   hideFullTranslation?: boolean;
 }
 
@@ -330,6 +376,8 @@ export function build916Timeline(
         wordTimings: resolvedWords.words,
         approximateSync: resolvedWords.approximate,
         pageIndex: p,
+        ayahIndex: idx,
+        totalAyahs: ayahs.length,
         hideFullTranslation: Boolean(options.wordByWordMeaning),
       });
       pageCursor += pageDur;

@@ -13,15 +13,16 @@ import { ensureFontsLoaded } from "@/config/fonts";
 import { getAudioCdnUrl, getAudioProxyUrl, type FetchedAyah } from "@/lib/quran";
 import { VIDEO_HEIGHT, VIDEO_WIDTH } from "@/config/platforms916";
 import { getEveryAyahUrl, getReciterConfig, type ReciterId } from "@/config/reciters";
-import { loadSurahTimings, loadSurahWordsUr } from "./wordTiming";
+import { loadSurahTimings, loadSurahWordsUr, tokenizeQuranWords } from "./wordTiming";
 import { buildMasterAudioMix } from "./audioMix";
+import { shapeWordToGlyphPaths } from "./harfbuzzWrite";
 import {
   AYAH_GAP_SEC,
   INTRO_SEC,
   build916Timeline,
   type Studio916Options,
 } from "./timeline";
-import { render916Frame } from "./render";
+import { render916Frame, type RenderExtras } from "./render";
 
 export interface EncodeProgress {
   pct: number;
@@ -191,6 +192,7 @@ export async function export916Mp4(opts: {
   reciter: ReciterId;
   partLabel?: string;
   voiceover?: { buffer: AudioBuffer; text: string } | null;
+  extras?: RenderExtras;
   signal?: AbortSignal;
   onProgress?: (p: EncodeProgress) => void;
 }): Promise<{ mp4Blob: Blob; coverBlob: Blob; totalDurationSec: number }> {
@@ -201,11 +203,21 @@ export async function export916Mp4(opts: {
     reciter,
     partLabel,
     voiceover,
+    extras,
     signal,
     onProgress,
   } = opts;
 
   await ensureFontsLoaded();
+
+  // Pre-shape HarfBuzz glyph paths for doodle_write / qalam_write
+  if (options.handStyle === "doodle_write" || options.handStyle === "qalam_write") {
+    onProgress?.({ pct: 3, etaSec: 0, stage: "خطاطی شیپنگ تیار ہو رہی ہے…" });
+    const allTokens = ayahs.flatMap((a) => tokenizeQuranWords(a.arabicText));
+    await Promise.all(
+      allTokens.map((w) => shapeWordToGlyphPaths(w, options.script ?? "indopak"))
+    );
+  }
 
   onProgress?.({ pct: 5, etaSec: 0, stage: "تلاوت لوڈ ہو رہی ہے…" });
   const { audioBuffers, durations } = await loadRecitationBuffers(ayahs, reciter);
@@ -258,7 +270,9 @@ export async function export916Mp4(opts: {
     options,
     reciter,
     qrImg,
-    partLabel
+    partLabel,
+    0,
+    extras
   );
   const coverBlob = await new Promise<Blob>((resolve, reject) => {
     canvas.toBlob(
@@ -309,10 +323,36 @@ export async function export916Mp4(opts: {
     const fps = 30;
     const frameDur = 1 / fps;
     const totalFrames = Math.ceil(totalDurationSec * fps);
+    const videoBg =
+      typeof HTMLVideoElement !== "undefined" &&
+      extras?.mediaSource instanceof HTMLVideoElement
+        ? extras.mediaSource
+        : null;
+    if (videoBg && !videoBg.paused) {
+      videoBg.pause();
+    }
 
     for (let f = 0; f < totalFrames; f++) {
       if (signal?.aborted) throw new Error("Export cancelled");
       const tSec = f * frameDur;
+      if (videoBg && Number.isFinite(videoBg.duration) && videoBg.duration > 0) {
+        const targetTime = tSec % Math.max(0.1, videoBg.duration);
+        if (Math.abs(videoBg.currentTime - targetTime) > 0.015) {
+          await new Promise<void>((resolve) => {
+            const timer = setTimeout(() => {
+              videoBg.removeEventListener("seeked", onSeeked);
+              resolve();
+            }, 150);
+            const onSeeked = () => {
+              clearTimeout(timer);
+              videoBg.removeEventListener("seeked", onSeeked);
+              resolve();
+            };
+            videoBg.addEventListener("seeked", onSeeked, { once: true });
+            videoBg.currentTime = targetTime;
+          });
+        }
+      }
       render916Frame(
         ctx,
         tSec,
@@ -322,7 +362,8 @@ export async function export916Mp4(opts: {
         reciter,
         qrImg,
         partLabel,
-        masterMix.envelope30fps[f] ?? 0
+        masterMix.envelope30fps[f] ?? 0,
+        extras
       );
       await videoSource.add(tSec, frameDur);
       if (f % 15 === 0 && f > 0) {
