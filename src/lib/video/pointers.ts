@@ -43,8 +43,15 @@ export function computePointerState(
     activeIdx = i;
   }
 
-  const curr = boxes[Math.min(activeIdx, boxes.length - 1)];
-  const prev = boxes[Math.max(0, activeIdx - 1)];
+  const byBoxIdx = boxes.findIndex((b) => b.index === activeIdx);
+  const clampedCurrIdx =
+    byBoxIdx >= 0
+      ? byBoxIdx
+      : activeIdx < (boxes[0]?.index ?? 0)
+        ? 0
+        : boxes.length - 1;
+  const curr = boxes[clampedCurrIdx];
+  const prev = boxes[Math.max(0, clampedCurrIdx - 1)];
   const timing = timings[Math.min(activeIdx, timings.length - 1)];
   const wordStart = timing[1];
   const wordEnd = timing[2];
@@ -87,7 +94,7 @@ export function computePointerState(
     alpha,
     scale: 1,
     underlineProgress,
-    activeWordIndex: activeIdx,
+    activeWordIndex: curr.index,
     page: curr.page,
   };
 }

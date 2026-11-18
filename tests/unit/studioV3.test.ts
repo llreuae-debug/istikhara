@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { shapeWordToGlyphPaths } from "../../src/lib/video/harfbuzzWrite";
 import { autoContrastForLuminance } from "../../src/lib/video/contrast";
+import { computePointerState } from "../../src/lib/video/pointers";
 import { SHORTS_TEMPLATES } from "../../src/config/templates";
 import { UNIVERSAL_SAFE_BOX } from "../../src/config/platforms916";
 import { build916Timeline, type Studio916Options } from "../../src/lib/video/timeline";
@@ -127,6 +128,28 @@ describe("Phase 3 — 7 Shorts Templates & Safe-Zone Layout", () => {
           }
         }
       }
+    }
+  });
+
+  it("handles multi-page word boxes in computePointerState without undefined prev/curr crash", () => {
+    const ayah = SAMPLE_AYAHS[1]; // 3:159
+    const tl = build916Timeline([ayah], [35], [], {
+      mode: "urdu-tarjuma",
+      theme: "midnight_gold",
+      arabicMaxSize: 56,
+      urduMaxSize: 38,
+      showQr: true,
+      showSurahHeader: true,
+      readingSpeed: 2.2,
+      tafseerAudio: "silence",
+      tafsirNameUr: URDU_TAFSIRS[0].nameUr,
+      tafsirAuthorUr: URDU_TAFSIRS[0].authorUr,
+    });
+    const verseFrames = tl.frames.filter((f) => f.kind === "verse");
+    for (const vf of verseFrames) {
+      const state = computePointerState(vf.wordBoxes, vf.wordTimings, 25_000);
+      expect(state).not.toBeNull();
+      expect(typeof state!.page).toBe("number");
     }
   });
 });
