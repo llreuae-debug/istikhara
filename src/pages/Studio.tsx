@@ -919,8 +919,9 @@ export default function Studio() {
             : "aivoice";
       const filename = `Istikhara_${safeSurah}_${primary.surahNumber}-${aRange}_${script}_${voiceTag}_9x16.mp4`;
 
+      const mp4Url = URL.createObjectURL(res.mp4Blob);
       setExported({
-        mp4Url: URL.createObjectURL(res.mp4Blob),
+        mp4Url,
         mp4Blob: res.mp4Blob,
         coverUrl: URL.createObjectURL(res.coverBlob),
         srt: toSrt(previewTimeline.cues),
@@ -929,7 +930,14 @@ export default function Studio() {
         durationSec: res.totalDurationSec,
       });
 
-      if (isNative()) {
+      if (!isNative()) {
+        const autoLink = document.createElement("a");
+        autoLink.href = mp4Url;
+        autoLink.download = filename;
+        document.body.appendChild(autoLink);
+        autoLink.click();
+        autoLink.remove();
+      } else {
         await saveAndShareBlob({
           blob: res.mp4Blob,
           filename,

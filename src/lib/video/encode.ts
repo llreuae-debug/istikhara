@@ -241,7 +241,7 @@ export async function export916Mp4(opts: {
   const canvas = document.createElement("canvas");
   canvas.width = VIDEO_WIDTH;
   canvas.height = VIDEO_HEIGHT;
-  const ctx = canvas.getContext("2d");
+  const ctx = canvas.getContext("2d", { willReadFrequently: true });
   if (!ctx) throw new Error("Canvas 2D unsupported");
 
   // Capture 1080x1920 cover image (first verse frame, centered in 3:4 area)
