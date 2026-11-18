@@ -1,18 +1,43 @@
 import type { FetchedAyah } from "@/lib/quran";
 import { UNIVERSAL_SAFE_BOX } from "@/config/platforms916";
+import {
+  getArabicFontStack,
+  getUrduFontStack,
+  type ArabicFontId,
+  type QuranScript,
+  type UrduFontId,
+} from "@/config/fonts";
 import { buildSubtitleTimeline, chunkTranslation, type SubtitleCue } from "./subtitles";
+import { layoutArabicWordsRTL, type WordBox } from "./wordLayout";
+import {
+  resolveAyahWordTimings,
+  type AyahTimingEntry,
+  type WordTimingTuple,
+} from "./wordTiming";
+import type { PointerStyle } from "./pointers";
+import type { BgStyle, MotionIntensity, VideoTheme } from "./backgrounds";
+
+export type { VideoTheme };
 
 export const INTRO_SEC = 1.5;
 export const OUTRO_SEC = 2.5;
 export const AYAH_GAP_SEC = 0.4;
 
 export type VideoMode = "urdu-tarjuma" | "urdu-tafseer" | "tafseer-only";
-export type VideoTheme = "midnight_gold" | "emerald" | "ivory";
 export type TafseerAudioMode = "silence" | "repeat_50";
 
 export interface Studio916Options {
   mode: VideoMode;
   theme: VideoTheme;
+  bgStyle?: BgStyle;
+  motionIntensity?: MotionIntensity;
+  audioReactiveGlow?: boolean;
+  particles?: boolean;
+  script?: QuranScript;
+  arabicFont?: ArabicFontId;
+  urduFont?: UrduFontId;
+  pointerStyle?: PointerStyle;
+  wordByWordMeaning?: boolean;
   arabicMaxSize: number; // default 64, min 40
   urduMaxSize: number; // default 42, min 32
   showQr: boolean;
@@ -21,6 +46,7 @@ export interface Studio916Options {
   tafseerAudio: TafseerAudioMode;
   tafsirNameUr: string;
   tafsirAuthorUr: string;
+  voiceCreditUr?: string;
 }
 
 export interface VerseFrame {
@@ -33,6 +59,12 @@ export interface VerseFrame {
   startSec: number;
   endSec: number;
   compactHeaderOnly: boolean;
+  ayahStartSec: number;
+  wordBoxes: WordBox[];
+  wordTimings: WordTimingTuple[];
+  approximateSync: boolean;
+  pageIndex: number;
+  hideFullTranslation?: boolean;
 }
 
 export interface TafseerFrame {
@@ -49,7 +81,18 @@ export interface TafseerFrame {
   endSec: number;
 }
 
-export type TimelineFrame = VerseFrame | TafseerFrame;
+export interface VoiceFrame {
+  kind: "voice";
+  ayah: FetchedAyah;
+  headerPreviewLines: string[];
+  urduText: string;
+  cues: SubtitleCue[];
+  fontSize: number;
+  startSec: number;
+  endSec: number;
+}
+
+export type TimelineFrame = VerseFrame | TafseerFrame | VoiceFrame;
 
 export function wrapCanvasText(
   ctx: CanvasRenderingContext2D,
@@ -163,7 +206,9 @@ export function build916Timeline(
   ayahs: FetchedAyah[],
   audioDurationsSec: number[],
   selectedTafseerParagraphs: string[],
-  options: Studio916Options
+  options: Studio916Options,
+  ayahWordData?: Array<{ entry?: AyahTimingEntry | null; meaningsUr?: string[] }>,
+  voiceover?: { text: string; durationSec: number; gapSec?: number }
 ): {
   frames: TimelineFrame[];
   cues: SubtitleCue[];
@@ -186,10 +231,16 @@ export function build916Timeline(
     const dur = Math.max(2.5, audioDurationsSec[idx] || 5);
     const fullArabic = `${ayah.arabicText}\u00A0﴿${ayah.ayahNumber}﴾`;
 
+    const arFontStack = getArabicFontStack(
+      options.script ?? "indopak",
+      options.arabicFont
+    );
+    const urFontStack = getUrduFontStack(options.urduFont ?? "noto-nastaliq");
+
     const arFit = autoFitText(
       ctx,
       fullArabic,
-      "'Amiri Quran', 'Amiri', serif",
+      arFontStack,
       options.arabicMaxSize,
       40,
       maxTextW,
@@ -199,7 +250,7 @@ export function build916Timeline(
     const urFit = autoFitText(
       ctx,
       ayah.urduText,
-      "'Noto Nastaliq Urdu', serif",
+      urFontStack,
       options.urduMaxSize,
       32,
       maxTextW - 32,
@@ -211,22 +262,51 @@ export function build916Timeline(
       arGroups.push(arFit.lines.slice(i, i + 4));
     }
 
+    const wordData = ayahWordData?.[idx];
+    const resolvedWords = resolveAyahWordTimings(
+      ayah.arabicText,
+      Math.round(dur * 1000),
+      wordData?.entry ?? null,
+      wordData?.meaningsUr ?? []
+    );
+    const wordLayout = layoutArabicWordsRTL(
+      ctx,
+      resolvedWords.tokens,
+      resolvedWords.meaningsUr,
+      {
+        fontFamily: arFontStack,
+        fontSize: arFit.fontSize,
+        wordByWordMeaning: Boolean(options.wordByWordMeaning),
+        compactHeaderOnly: options.mode === "tafseer-only",
+      }
+    );
+
+    const numPages = Math.max(1, wordLayout.totalPages);
     const chunks =
       options.mode === "tafseer-only" ? [] : chunkTranslation(ayah.urduText, 10);
-    const chunksPerPage = Math.max(1, Math.ceil(chunks.length / arGroups.length));
+    const chunksPerPage = Math.max(1, Math.ceil(chunks.length / numPages));
 
     let pageCursor = cursor;
-    const totalChars = arGroups.reduce((s, g) => s + g.join(" ").length, 0);
+    for (let p = 0; p < numPages; p++) {
+      const pageBoxes = wordLayout.boxes.filter((b) => b.page === p);
+      let pageDur = dur / numPages;
+      if (numPages > 1 && pageBoxes.length > 0) {
+        const firstIdx = pageBoxes[0].index;
+        const lastIdx = pageBoxes[pageBoxes.length - 1].index;
+        const nextPageFirst = wordLayout.boxes.find((b) => b.page === p + 1);
+        const pStartMs = p === 0 ? 0 : resolvedWords.words[firstIdx]?.[1] ?? (p / numPages) * dur * 1000;
+        const pEndMs =
+          p === numPages - 1
+            ? dur * 1000
+            : nextPageFirst
+              ? resolvedWords.words[nextPageFirst.index]?.[1] ?? ((p + 1) / numPages) * dur * 1000
+              : resolvedWords.words[lastIdx]?.[2] ?? ((p + 1) / numPages) * dur * 1000;
+        pageDur = Math.max(0.8, (pEndMs - pStartMs) / 1000);
+      }
 
-    for (let p = 0; p < arGroups.length; p++) {
-      const weight = arGroups[p].join(" ").length;
-      const pageDur =
-        arGroups.length === 1
-          ? dur
-          : (weight / Math.max(1, totalChars)) * dur;
       const pageChunks = chunks.slice(
         p * chunksPerPage,
-        p === arGroups.length - 1 ? chunks.length : (p + 1) * chunksPerPage
+        p === numPages - 1 ? chunks.length : (p + 1) * chunksPerPage
       );
       const pageCues = buildSubtitleTimeline(
         pageChunks,
@@ -238,13 +318,19 @@ export function build916Timeline(
       frames.push({
         kind: "verse",
         ayah,
-        arabicLines: arGroups[p],
+        arabicLines: arGroups[Math.min(p, arGroups.length - 1)] ?? arFit.lines,
         arabicFontSize: arFit.fontSize,
         urduFontSize: urFit.fontSize,
         cues: pageCues,
         startSec: pageCursor,
         endSec: pageCursor + pageDur,
         compactHeaderOnly: options.mode === "tafseer-only",
+        ayahStartSec: cursor,
+        wordBoxes: pageBoxes,
+        wordTimings: resolvedWords.words,
+        approximateSync: resolvedWords.approximate,
+        pageIndex: p,
+        hideFullTranslation: Boolean(options.wordByWordMeaning),
       });
       pageCursor += pageDur;
     }
@@ -255,10 +341,70 @@ export function build916Timeline(
     }
   }
 
+  // If wordByWordMeaning is on in urdu-tarjuma mode, show full Urdu translation page right after
+  if (
+    options.wordByWordMeaning &&
+    options.mode === "urdu-tarjuma" &&
+    ayahs.length > 0
+  ) {
+    const firstAyah = ayahs[0];
+    const combinedUr = ayahs.map((a) => `${a.urduText} (${a.surahNumber}:${a.ayahNumber})`).join("\n");
+    const trDur = Math.max(4, combinedUr.split(/\s+/).length / Math.max(1.5, options.readingSpeed));
+    frames.push({
+      kind: "tafseer",
+      ayah: firstAyah,
+      headerPreviewLines: [`${firstAyah.arabicText}\u00A0﴿${firstAyah.ayahNumber}﴾`],
+      tafsirNameUr: "اردو ترجمہ (فتح محمد جالندھری)",
+      tafsirAuthorUr: "",
+      paragraphs: ayahs.map((a) => `${a.urduText}`),
+      fontSize: Math.min(36, options.urduMaxSize),
+      pageNum: 1,
+      totalPages: 1,
+      startSec: cursor,
+      endSec: cursor + trDur,
+    });
+    cursor += trDur;
+  }
+
   const recitationEndSec = cursor;
 
-  // 2. Tafseer pages (Modes B and C)
+  // 2. Voiceover frame (plays strictly after recitation + 0.6s gap, never overlapping)
+  if (voiceover && voiceover.durationSec > 0 && ayahs.length > 0) {
+    const gap = voiceover.gapSec ?? 0.6;
+    const voStart = cursor + gap;
+    const voDur = voiceover.durationSec;
+    const firstAyah = ayahs[0];
+    const headerPreview = autoFitText(
+      ctx,
+      `${firstAyah.arabicText}\u00A0﴿${firstAyah.ayahNumber}﴾`,
+      getArabicFontStack(options.script ?? "indopak", options.arabicFont),
+      32,
+      26,
+      maxTextW,
+      2
+    ).lines.slice(0, 2);
+    const voChunks = chunkTranslation(voiceover.text, 10);
+    const voCues = buildSubtitleTimeline(voChunks, voStart, voDur).map((c) => ({
+      ...c,
+      index: cueIndex++,
+    }));
+    allCues.push(...voCues);
+    frames.push({
+      kind: "voice",
+      ayah: firstAyah,
+      headerPreviewLines: headerPreview,
+      urduText: voiceover.text,
+      cues: voCues,
+      fontSize: Math.min(38, options.urduMaxSize),
+      startSec: voStart,
+      endSec: voStart + voDur,
+    });
+    cursor = voStart + voDur;
+  }
+
+  // 3. Tafseer pages (Modes B and C, when no voiceover replaces them)
   if (
+    !voiceover &&
     (options.mode === "urdu-tafseer" || options.mode === "tafseer-only") &&
     selectedTafseerParagraphs.length > 0 &&
     ayahs.length > 0

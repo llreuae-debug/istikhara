@@ -1,4 +1,9 @@
 import { getCachedVerse, setCachedVerse, type ReciterEdition } from "./storage";
+import {
+  getScriptTextEdition,
+  type ArabicFontId,
+  type QuranScript,
+} from "@/config/fonts";
 
 export const BASMALA_UTHMANI = "بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ";
 
@@ -107,8 +112,13 @@ async function loadSurahEdition(
   return parsed;
 }
 
-export async function getAyah(ref: number | string): Promise<FetchedAyah> {
-  const cacheKey = `v3:ref:${ref}`;
+export async function getAyah(
+  ref: number | string,
+  script: QuranScript = "madani",
+  arabicFont?: ArabicFontId
+): Promise<FetchedAyah> {
+  const arEdition = getScriptTextEdition(script, arabicFont);
+  const cacheKey = `v4:${arEdition}:ref:${ref}`;
   if (typeof window !== "undefined") {
     const cached = await getCachedVerse<FetchedAyah>(cacheKey);
     if (cached) return cached;
@@ -132,7 +142,7 @@ export async function getAyah(ref: number | string): Promise<FetchedAyah> {
     }
 
     const [arSurah, urSurah, enSurah] = await Promise.all([
-      loadSurahEdition("quran-uthmani", surahNum),
+      loadSurahEdition(arEdition, surahNum),
       loadSurahEdition("ur.jalandhry", surahNum),
       loadSurahEdition("en.sahih", surahNum),
     ]);
@@ -160,8 +170,8 @@ export async function getAyah(ref: number | string): Promise<FetchedAyah> {
     };
 
     if (typeof window !== "undefined") {
-      await setCachedVerse(`v3:ref:${result.globalNumber}`, result);
-      await setCachedVerse(`v3:ref:${surahNum}:${ayahNum}`, result);
+      await setCachedVerse(`v4:${arEdition}:ref:${result.globalNumber}`, result);
+      await setCachedVerse(`v4:${arEdition}:ref:${surahNum}:${ayahNum}`, result);
     }
     return result;
   } catch {
@@ -219,11 +229,14 @@ export async function getAyah(ref: number | string): Promise<FetchedAyah> {
 export async function getAyahRange(
   surahNumber: number,
   startAyah: number,
-  count: number
+  count: number,
+  script: QuranScript = "madani",
+  arabicFont?: ArabicFontId
 ): Promise<FetchedAyah[]> {
   const safeCount = Math.max(1, Math.min(5, count));
+  const arEdition = getScriptTextEdition(script, arabicFont);
   const [arSurah, urSurah, enSurah] = await Promise.all([
-    loadSurahEdition("quran-uthmani", surahNumber),
+    loadSurahEdition(arEdition, surahNumber),
     loadSurahEdition("ur.jalandhry", surahNumber),
     loadSurahEdition("en.sahih", surahNumber),
   ]);

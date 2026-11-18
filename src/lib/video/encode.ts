@@ -9,9 +9,12 @@ import {
   canEncodeVideo,
 } from "mediabunny";
 import { BRAND } from "@/brand";
+import { ensureFontsLoaded } from "@/config/fonts";
 import { getAudioCdnUrl, getAudioProxyUrl, type FetchedAyah } from "@/lib/quran";
 import { VIDEO_HEIGHT, VIDEO_WIDTH } from "@/config/platforms916";
-import type { ReciterId } from "@/config/reciters";
+import { getEveryAyahUrl, getReciterConfig, type ReciterId } from "@/config/reciters";
+import { loadSurahTimings, loadSurahWordsUr } from "./wordTiming";
+import { buildMasterAudioMix } from "./audioMix";
 import {
   AYAH_GAP_SEC,
   INTRO_SEC,
@@ -28,12 +31,52 @@ export interface EncodeProgress {
 
 async function fetchAudioBuffer(
   ctx: AudioContext,
-  globalNumber: number,
-  reciter: ReciterId
+  ayah: FetchedAyah,
+  reciter: ReciterId,
+  chapterBufferCache: Map<number, AudioBuffer>
 ): Promise<AudioBuffer> {
+  // 1. Prefer the exact QDC chapter recording that matches QDC word timings (CORS *)
+  try {
+    const timings = await loadSurahTimings(reciter, ayah.surahNumber);
+    const entry = timings?.ayahs.find((x) => x.ayah === ayah.ayahNumber);
+    if (timings && entry && entry.toMs > entry.fromMs) {
+      let chapterBuf = chapterBufferCache.get(ayah.surahNumber);
+      if (!chapterBuf) {
+        const cfg = getReciterConfig(reciter);
+        const chapterUrl =
+          timings.audioUrl || `${cfg.qdcChapterBaseUrl}/${ayah.surahNumber}.mp3`;
+        const res = await fetch(chapterUrl);
+        if (res.ok) {
+          const arr = await res.arrayBuffer();
+          chapterBuf = await ctx.decodeAudioData(arr);
+          chapterBufferCache.set(ayah.surahNumber, chapterBuf);
+        }
+      }
+      if (chapterBuf) {
+        const sr = chapterBuf.sampleRate;
+        const startSample = Math.max(0, Math.floor((entry.fromMs / 1000) * sr));
+        const endSample = Math.min(
+          chapterBuf.length,
+          Math.ceil((entry.toMs / 1000) * sr)
+        );
+        const len = Math.max(1, endSample - startSample);
+        const sliced = ctx.createBuffer(chapterBuf.numberOfChannels, len, sr);
+        for (let ch = 0; ch < chapterBuf.numberOfChannels; ch++) {
+          sliced
+            .getChannelData(ch)
+            .set(chapterBuf.getChannelData(ch).subarray(startSample, endSample));
+        }
+        return sliced;
+      }
+    }
+  } catch {
+    // fall back to per-ayah URLs
+  }
+
   const urls = [
-    getAudioCdnUrl(globalNumber, reciter),
-    getAudioProxyUrl(globalNumber, reciter),
+    getEveryAyahUrl(reciter, ayah.surahNumber, ayah.ayahNumber),
+    getAudioCdnUrl(ayah.globalNumber, reciter),
+    getAudioProxyUrl(ayah.globalNumber, reciter),
   ];
   for (const url of urls) {
     try {
@@ -42,7 +85,7 @@ async function fetchAudioBuffer(
       const arr = await res.arrayBuffer();
       return await ctx.decodeAudioData(arr);
     } catch {
-      // try proxy
+      // try next fallback
     }
   }
   throw new Error("Could not fetch recitation audio");
@@ -126,10 +169,11 @@ export async function loadRecitationBuffers(
     (window as unknown as { webkitAudioContext: typeof AudioContext })
       .webkitAudioContext;
   const ctx = new AudioCtx();
+  const chapterCache = new Map<number, AudioBuffer>();
   try {
     const audioBuffers: AudioBuffer[] = [];
     for (const a of ayahs) {
-      audioBuffers.push(await fetchAudioBuffer(ctx, a.globalNumber, reciter));
+      audioBuffers.push(await fetchAudioBuffer(ctx, a, reciter, chapterCache));
     }
     return {
       audioBuffers,
@@ -146,6 +190,7 @@ export async function export916Mp4(opts: {
   options: Studio916Options;
   reciter: ReciterId;
   partLabel?: string;
+  voiceover?: { buffer: AudioBuffer; text: string } | null;
   signal?: AbortSignal;
   onProgress?: (p: EncodeProgress) => void;
 }): Promise<{ mp4Blob: Blob; coverBlob: Blob; totalDurationSec: number }> {
@@ -155,23 +200,46 @@ export async function export916Mp4(opts: {
     options,
     reciter,
     partLabel,
+    voiceover,
     signal,
     onProgress,
   } = opts;
 
-  await Promise.all([
-    document.fonts?.load("400 48px 'Amiri Quran'"),
-    document.fonts?.load("400 36px 'Noto Nastaliq Urdu'"),
-    document.fonts?.load("600 28px 'Inter'"),
-  ]);
+  await ensureFontsLoaded();
 
   onProgress?.({ pct: 5, etaSec: 0, stage: "تلاوت لوڈ ہو رہی ہے…" });
   const { audioBuffers, durations } = await loadRecitationBuffers(ayahs, reciter);
-  const { frames, recitationEndSec, totalDurationSec } = build916Timeline(
+  const ayahWordData = await Promise.all(
+    ayahs.map(async (a) => {
+      const [tFile, wUr] = await Promise.all([
+        loadSurahTimings(reciter, a.surahNumber),
+        options.wordByWordMeaning ? loadSurahWordsUr(a.surahNumber) : Promise.resolve(null),
+      ]);
+      return {
+        entry: tFile?.ayahs.find((x) => x.ayah === a.ayahNumber) ?? null,
+        meaningsUr: wUr?.[String(a.ayahNumber)] ?? [],
+      };
+    })
+  );
+
+  onProgress?.({ pct: 8, etaSec: 0, stage: "آڈیو مکس اور نارملائزیشن…" });
+  const masterMix = await buildMasterAudioMix({
+    recitationBuffers: audioBuffers,
+    ayahGapSec: AYAH_GAP_SEC,
+    introSec: INTRO_SEC,
+    outroSec: 2.5,
+    voiceoverBuffer: voiceover?.buffer ?? null,
+  });
+
+  const { frames, totalDurationSec } = build916Timeline(
     ayahs,
     durations,
     selectedTafseerParagraphs,
-    options
+    options,
+    ayahWordData,
+    voiceover
+      ? { text: voiceover.text, durationSec: voiceover.buffer.duration }
+      : undefined
   );
   const qrImg = await loadQrImage916(ayahs[0]);
 
@@ -199,19 +267,7 @@ export async function export916Mp4(opts: {
     );
   });
 
-  const AudioCtx =
-    window.AudioContext ||
-    (window as unknown as { webkitAudioContext: typeof AudioContext })
-      .webkitAudioContext;
-  const audioCtx = new AudioCtx();
-  const fullAudio = buildFullAudioBuffer(
-    audioCtx,
-    audioBuffers,
-    recitationEndSec,
-    totalDurationSec,
-    options
-  );
-  await audioCtx.close();
+  const fullAudio = masterMix.buffer;
 
   const canAvc = await canEncodeVideo("avc", {
     width: VIDEO_WIDTH,
@@ -265,7 +321,8 @@ export async function export916Mp4(opts: {
         options,
         reciter,
         qrImg,
-        partLabel
+        partLabel,
+        masterMix.envelope30fps[f] ?? 0
       );
       await videoSource.add(tSec, frameDur);
       if (f % 15 === 0 && f > 0) {
@@ -292,6 +349,10 @@ export async function export916Mp4(opts: {
 
   // Fallback 1: MediaRecorder (+ optional single-threaded ffmpeg.wasm transcode)
   onProgress?.({ pct: 15, etaSec: Math.round(totalDurationSec), stage: "ویڈیو ریکارڈ ہو رہی ہے…" });
+  const AudioCtx =
+    window.AudioContext ||
+    (window as unknown as { webkitAudioContext: typeof AudioContext })
+      .webkitAudioContext;
   const recCtx = new AudioCtx();
   const dest = recCtx.createMediaStreamDestination();
   const srcNode = recCtx.createBufferSource();

@@ -34,10 +34,11 @@ export default function About() {
               {t.about.sourcesTitle}
             </h2>
             <ul className="text-sm text-[var(--text-secondary)] space-y-1.5 list-disc list-inside">
-              <li>Quranic Arabic &amp; API: Al-Quran Cloud (quran-uthmani)</li>
+              <li>Quranic Arabic &amp; Scripts: Al-Quran Cloud (`quran-uthmani`), QUL / Quran.com (`qpc-hafs` &amp; `qul-indopak`)</li>
               <li>Urdu Translation: Maulana Fateh Muhammad Jalandhry (ur.jalandhry)</li>
               <li>English Translation: Sahih International (en.sahih)</li>
-              <li>Audio Recitations: Mishary Alafasy, Abdul Basit Murattal, Mahmoud Al-Husary</li>
+              <li>Audio Recitations &amp; Timings: Mishary Alafasy, Abdul Basit Murattal, Mahmoud Al-Husary (EveryAyah / QUL / quran-align)</li>
+              <li>Fonts (Self-Hosted): KFGQPC Uthmanic Script HAFS, Indopak Nastaleeq (QUL), Amiri Quran, Scheherazade New, Noto Nastaliq Urdu, Gulzar, Reem Kufi, Aref Ruqaa, Cormorant Garamond, Inter (OFL-1.1 / KFGQPC License)</li>
               <li>Tafsir Reference: Quran.com</li>
               <li>Istikhara Dua: Sahih al-Bukhari 1162</li>
             </ul>

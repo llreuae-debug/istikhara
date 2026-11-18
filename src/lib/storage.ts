@@ -1,3 +1,5 @@
+import type { QuranScript } from "@/config/fonts";
+
 export type LanguageMode = "ur" | "en" | "both";
 export type ThemeMode = "dark" | "light" | "auto";
 export type ReciterEdition = "ar.alafasy" | "ar.abdulbasitmurattal" | "ar.husary";
@@ -15,6 +17,7 @@ export interface AppSettings {
   language: LanguageMode;
   theme: ThemeMode;
   arabicFontSize: number;
+  script: QuranScript;
   reciter: ReciterEdition;
   selectionMode: SelectionMode;
   haptics: boolean;
@@ -53,6 +56,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   language: "ur",
   theme: "dark",
   arabicFontSize: 30,
+  script: "indopak",
   reciter: "ar.alafasy",
   selectionMode: "full",
   haptics: true,

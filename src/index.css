@@ -1,3 +1,19 @@
+@font-face {
+  font-family: 'KFGQPC Uthmanic Script HAFS';
+  src: url('/fonts/UthmanicHafs1Ver18.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Indopak Nastaleeq';
+  src: url('/fonts/indopak-nastaleeq-waqf-lazim-v4.2.1.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -75,16 +91,37 @@ li {
   text-wrap: pretty;
 }
 
-.font-arabic-quran {
-  font-family: 'Amiri Quran', 'Amiri', 'Scheherazade New', serif;
+.font-arabic-quran,
+.font-quran-madani {
+  font-family: 'KFGQPC Uthmanic Script HAFS', 'Amiri Quran', 'Scheherazade New', serif;
   line-height: 2.15;
   direction: rtl;
   unicode-bidi: isolate;
 }
 
-.font-urdu-nastaliq {
-  font-family: 'Noto Nastaliq Urdu', serif;
+.font-quran-indopak {
+  font-family: 'Indopak Nastaleeq', 'Noto Nastaliq Urdu', serif;
   line-height: 2.35;
+  direction: rtl;
+  unicode-bidi: isolate;
+}
+
+.font-urdu-nastaliq {
+  font-family: 'Noto Nastaliq Urdu', 'Gulzar', serif;
+  line-height: 2.35;
+  padding-top: 0.35em;
+  direction: rtl;
+}
+
+.font-urdu-heading {
+  font-family: 'Gulzar', 'Noto Nastaliq Urdu', serif;
+  line-height: 2.35;
+  padding-top: 0.35em;
+  direction: rtl;
+}
+
+.font-arabic-decorative {
+  font-family: 'Reem Kufi', 'Aref Ruqaa', serif;
   direction: rtl;
 }
 

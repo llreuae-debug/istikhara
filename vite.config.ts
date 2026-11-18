@@ -58,10 +58,16 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ["**/*.{js,css,html,ico,png,svg,woff,woff2}"],
-        globIgnores: ["**/data/quran/**", "**/og/**", "**/plugins/**"],
+        globIgnores: [
+          "**/data/quran/**",
+          "**/data/timings/**",
+          "**/data/words-ur/**",
+          "**/og/**",
+          "**/plugins/**",
+        ],
         runtimeCaching: [
           {
-            urlPattern: /\/data\/quran\/.*\.json$/i,
+            urlPattern: /\/data\/(quran|timings|words-ur)\/.*\.json$/i,
             handler: "CacheFirst",
             options: {
               cacheName: "local-quran-json-cache",

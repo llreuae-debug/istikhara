@@ -117,6 +117,40 @@ export default function Settings() {
             />
           </div>
 
+          {/* Quran Script (IndoPak vs Madani) */}
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-[var(--text-primary)]">
+              {uiLang === "ur" ? "قرآنی رسم الخط" : "Quran Script"}
+            </label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {(
+                [
+                  {
+                    id: "indopak" as const,
+                    label: uiLang === "ur" ? "انڈو پاک (نستعلیق)" : "IndoPak (South Asian)",
+                  },
+                  {
+                    id: "madani" as const,
+                    label: uiLang === "ur" ? "مدنی (مصحفِ مدینہ / عثمانی)" : "Madani (Uthmani HAFS)",
+                  },
+                ]
+              ).map((s) => (
+                <button
+                  key={s.id}
+                  type="button"
+                  onClick={() => updateSettings({ script: s.id })}
+                  className={`px-4 py-2.5 rounded-xl text-sm border text-start transition-colors ${
+                    (settings.script ?? (uiLang === "ur" ? "indopak" : "madani")) === s.id
+                      ? "bg-[var(--gold)] text-[#0A1A2F] border-[var(--gold)] font-semibold"
+                      : "border-[var(--border-subtle)] text-[var(--text-primary)]"
+                  }`}
+                >
+                  {s.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
           {/* Reciter */}
           <div className="space-y-2">
             <label htmlFor="reciter-select" className="block text-sm font-medium text-[var(--text-primary)]">

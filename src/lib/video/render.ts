@@ -4,6 +4,12 @@ import {
   VIDEO_HEIGHT,
   VIDEO_WIDTH,
 } from "@/config/platforms916";
+import {
+  getArabicFontStack,
+  getUrduFontStack,
+  NASTALIQ_LINE_HEIGHT,
+  NASTALIQ_TOP_PADDING,
+} from "@/config/fonts";
 import { getReciterName, type ReciterId } from "@/config/reciters";
 import {
   INTRO_SEC,
@@ -12,39 +18,12 @@ import {
   type Studio916Options,
   type TimelineFrame,
 } from "./timeline";
-
-const THEME_PALETTES = {
-  midnight_gold: {
-    bgInner: "#0B3D2E",
-    bgOuter: "#0A1A2F",
-    panel: "rgba(10, 26, 47, 0.72)",
-    text: "#F7F1E3",
-    subtext: "rgba(247, 241, 227, 0.92)",
-    accent: "#E6CF7A",
-    line: "rgba(201, 162, 39, 0.08)",
-    divider: "rgba(201, 162, 39, 0.45)",
-  },
-  emerald: {
-    bgInner: "#14614A",
-    bgOuter: "#061E16",
-    panel: "rgba(6, 30, 22, 0.74)",
-    text: "#F7F1E3",
-    subtext: "rgba(247, 241, 227, 0.92)",
-    accent: "#E6CF7A",
-    line: "rgba(230, 207, 122, 0.08)",
-    divider: "rgba(230, 207, 122, 0.45)",
-  },
-  ivory: {
-    bgInner: "#FFFDF8",
-    bgOuter: "#EDE2CA",
-    panel: "rgba(255, 253, 248, 0.85)",
-    text: "#1B1B1B",
-    subtext: "rgba(27, 27, 27, 0.88)",
-    accent: "#9A7610",
-    line: "rgba(154, 118, 16, 0.08)",
-    divider: "rgba(154, 118, 16, 0.4)",
-  },
-} as const;
+import { computePointerState, drawPointer } from "./pointers";
+import {
+  drawAnimatedBackground,
+  THEME_PALETTES,
+  type ThemePalette,
+} from "./backgrounds";
 
 export interface ElementBox {
   id: string;
@@ -106,44 +85,10 @@ export function computeSafeZoneElementBoxes(
   ];
 }
 
-function drawBackground(
-  ctx: CanvasRenderingContext2D,
-  tSec: number,
-  pal: (typeof THEME_PALETTES)[keyof typeof THEME_PALETTES]
-) {
-  const grad = ctx.createRadialGradient(
-    VIDEO_WIDTH * 0.5,
-    VIDEO_HEIGHT * 0.36,
-    40,
-    VIDEO_WIDTH * 0.5,
-    VIDEO_HEIGHT * 0.5,
-    VIDEO_HEIGHT * 0.72
-  );
-  grad.addColorStop(0, pal.bgInner);
-  grad.addColorStop(1, pal.bgOuter);
-  ctx.fillStyle = grad;
-  ctx.fillRect(0, 0, VIDEO_WIDTH, VIDEO_HEIGHT);
-
-  // 8-fold Islamic geometric lines at ~8% opacity, slow rotation
-  ctx.save();
-  ctx.strokeStyle = pal.line;
-  ctx.lineWidth = 1.5;
-  ctx.translate(VIDEO_WIDTH / 2, VIDEO_HEIGHT / 2);
-  ctx.rotate((tSec / 240) * Math.PI * 2);
-  const r = 680;
-  ctx.strokeRect(-r, -r, r * 2, r * 2);
-  ctx.rotate(Math.PI / 4);
-  ctx.strokeRect(-r, -r, r * 2, r * 2);
-  ctx.beginPath();
-  ctx.arc(0, 0, 420, 0, Math.PI * 2);
-  ctx.stroke();
-  ctx.restore();
-}
-
 function drawBrandAndFooter(
   ctx: CanvasRenderingContext2D,
   options: Studio916Options,
-  pal: (typeof THEME_PALETTES)[keyof typeof THEME_PALETTES],
+  pal: ThemePalette,
   qrImg: HTMLImageElement | null
 ) {
   const s = UNIVERSAL_SAFE_BOX;
@@ -187,12 +132,37 @@ export function render916Frame(
   options: Studio916Options,
   reciter: ReciterId,
   qrImg: HTMLImageElement | null,
-  partLabel?: string
+  partLabel?: string,
+  audioLevel?: number
 ) {
-  const pal = THEME_PALETTES[options.theme];
+  const pal = THEME_PALETTES[options.theme] ?? THEME_PALETTES.midnight_gold;
   const s = UNIVERSAL_SAFE_BOX;
 
-  drawBackground(ctx, tSec, pal);
+  const activeVerse = frames.find(
+    (f) => f.kind === "verse" && tSec >= f.startSec && tSec <= f.endSec
+  );
+  let activeWordCenter: { x: number; y: number } | null = null;
+  if (activeVerse && activeVerse.kind === "verse") {
+    const pState = computePointerState(
+      activeVerse.wordBoxes,
+      activeVerse.wordTimings,
+      Math.max(0, (tSec - activeVerse.ayahStartSec) * 1000)
+    );
+    const box = pState
+      ? activeVerse.wordBoxes.find((b) => b.index === pState.activeWordIndex)
+      : undefined;
+    if (box) activeWordCenter = { x: box.centerX, y: box.baselineY };
+  }
+
+  drawAnimatedBackground(ctx, tSec, {
+    style: options.bgStyle ?? "girih",
+    theme: options.theme,
+    motion: options.motionIntensity ?? "calm",
+    audioReactive: options.audioReactiveGlow ?? true,
+    particles: options.particles ?? false,
+    audioLevel,
+    activeWordCenter,
+  });
 
   // INTRO (0..1.5s)
   if (tSec < INTRO_SEC) {
@@ -256,6 +226,14 @@ export function render916Frame(
       );
     }
 
+    if (options.voiceCreditUr) {
+      ctx.fillText(
+        options.voiceCreditUr,
+        s.x + s.width / 2,
+        s.y + 835
+      );
+    }
+
     ctx.fillStyle = pal.subtext;
     ctx.font = "400 22px 'Noto Nastaliq Urdu', serif";
     ctx.fillText(
@@ -285,41 +263,102 @@ export function render916Frame(
 
   if (active.kind === "verse") {
     // 2. Surah header
+    // Also fix duplicate سورۃ prefix if Arabic surah name already starts with سورة
+    const cleanSurahAr = active.ayah.surahNameAr.replace(/^سُوْرَةُ\s*|^سورة\s*/, "");
     if (options.showSurahHeader) {
       ctx.save();
       ctx.textAlign = "center";
       ctx.fillStyle = pal.accent;
       ctx.font = "600 26px 'Inter', sans-serif";
       ctx.fillText(
-        `سورۃ ${active.ayah.surahNameAr} • ${active.ayah.surahNameEn} • ${active.ayah.surahNumber}:${active.ayah.ayahNumber}`,
+        `سورۃ ${cleanSurahAr} • ${active.ayah.surahNameEn} • ${active.ayah.surahNumber}:${active.ayah.ayahNumber}`,
         s.x + s.width / 2,
         s.y + 115
       );
       ctx.restore();
     }
 
-    // 3. Arabic block with soft gold sweep
-    const arLineH = active.arabicFontSize * 1.9;
-    const arStartY = s.y + (active.compactHeaderOnly ? 380 : 250);
-    const progress =
-      (tSec - active.startSec) / Math.max(0.1, active.endSec - active.startSec);
-    const sweepX = s.x + progress * s.width;
-    const sweepGrad = ctx.createLinearGradient(sweepX - 180, 0, sweepX + 180, 0);
-    sweepGrad.addColorStop(0, pal.text);
-    sweepGrad.addColorStop(0.5, pal.accent);
-    sweepGrad.addColorStop(1, pal.text);
+    // 3. Word-by-word RTL Arabic block + Hand Reading pointer
+    const arFontStack = getArabicFontStack(
+      options.script ?? "indopak",
+      options.arabicFont
+    );
+    const urFontStack = getUrduFontStack(options.urduFont ?? "noto-nastaliq");
+    const pointerStyle = options.pointerStyle ?? "hand";
+    const relMs = Math.max(0, (tSec - active.ayahStartSec) * 1000);
+    const pointerState = computePointerState(
+      active.wordBoxes,
+      active.wordTimings,
+      relMs
+    );
+    const activeWordIdx = pointerState?.activeWordIndex ?? -1;
 
-    ctx.save();
-    ctx.direction = "rtl";
-    ctx.textAlign = "center";
-    ctx.font = `400 ${active.arabicFontSize}px 'Amiri Quran', 'Amiri', serif`;
-    ctx.fillStyle = sweepGrad;
-    active.arabicLines.forEach((line, idx) => {
-      ctx.fillText(line, s.x + s.width / 2, arStartY + idx * arLineH);
-    });
-    ctx.restore();
+    if (active.wordBoxes.length > 0 && pointerStyle !== "off") {
+      for (const box of active.wordBoxes) {
+        const isCurrent = box.index === activeWordIdx;
+        const isRecited = box.index < activeWordIdx;
+        const wordTiming = active.wordTimings[box.index];
+        const elapsedWordMs = wordTiming ? Math.max(0, relMs - wordTiming[1]) : 0;
+        const scaleEase = isCurrent
+          ? 1 + 0.04 * Math.min(1, elapsedWordMs / 120)
+          : 1;
 
-    if (!active.compactHeaderOnly) {
+        ctx.save();
+        ctx.direction = "rtl";
+        ctx.textAlign = "center";
+        ctx.font = `400 ${active.arabicFontSize}px ${arFontStack}`;
+        ctx.translate(box.centerX, box.baselineY);
+        ctx.scale(scaleEase, scaleEase);
+
+        if (isCurrent) {
+          ctx.globalAlpha = 1;
+          ctx.fillStyle = pal.accent;
+          ctx.shadowColor = pal.accent;
+          ctx.shadowBlur = 18;
+        } else if (isRecited) {
+          ctx.globalAlpha = 1;
+          ctx.fillStyle = pal.text;
+        } else {
+          ctx.globalAlpha = 0.55;
+          ctx.fillStyle = pal.text;
+        }
+        ctx.fillText(box.text, 0, 0);
+        ctx.restore();
+
+        // Optional word-by-word Urdu meaning ("لفظی ترجمہ")
+        if (box.meaningBaselineY && box.meaningUr) {
+          ctx.save();
+          ctx.direction = "rtl";
+          ctx.textAlign = "center";
+          ctx.font = `400 21px ${urFontStack}`;
+          ctx.globalAlpha = isCurrent ? 1 : isRecited ? 0.9 : 0.5;
+          ctx.fillStyle = isCurrent ? pal.accent : pal.subtext;
+          ctx.fillText(box.meaningUr, box.centerX, box.meaningBaselineY);
+          ctx.restore();
+        }
+      }
+
+      if (pointerState) {
+        const activeBox = active.wordBoxes.find(
+          (b) => b.index === pointerState.activeWordIndex
+        );
+        drawPointer(ctx, pointerStyle, pointerState, activeBox, pal.accent);
+      }
+    } else {
+      const arLineH = active.arabicFontSize * 1.9;
+      const arStartY = s.y + (active.compactHeaderOnly ? 380 : 250);
+      ctx.save();
+      ctx.direction = "rtl";
+      ctx.textAlign = "center";
+      ctx.font = `400 ${active.arabicFontSize}px ${arFontStack}`;
+      ctx.fillStyle = pal.text;
+      active.arabicLines.forEach((line, idx) => {
+        ctx.fillText(line, s.x + s.width / 2, arStartY + idx * arLineH);
+      });
+      ctx.restore();
+    }
+
+    if (!active.compactHeaderOnly && !active.hideFullTranslation) {
       // 4. Geometric gold divider
       const divY = s.y + 620;
       ctx.save();
@@ -346,14 +385,66 @@ export function render916Frame(
         ctx.direction = "rtl";
         ctx.textAlign = "center";
         ctx.fillStyle = pal.text;
-        ctx.font = `400 ${active.urduFontSize}px 'Noto Nastaliq Urdu', serif`;
+        ctx.font = `400 ${active.urduFontSize}px ${urFontStack}`;
         const wrapped = wrapCanvasText(ctx, activeCue.text, s.width - 80);
-        const urLineH = active.urduFontSize * 2.25;
+        const urLineH = active.urduFontSize * NASTALIQ_LINE_HEIGHT;
         wrapped.slice(0, 4).forEach((line, idx) => {
-          ctx.fillText(line, s.x + s.width / 2, s.y + 740 + idx * urLineH);
+          ctx.fillText(
+            line,
+            s.x + s.width / 2,
+            s.y + 720 + NASTALIQ_TOP_PADDING + idx * urLineH
+          );
         });
         ctx.restore();
       }
+    }
+    return;
+  }
+
+  if (active.kind === "voice") {
+    // Compact Arabic header strip
+    const arFontStack = getArabicFontStack(
+      options.script ?? "indopak",
+      options.arabicFont
+    );
+    const urFontStack = getUrduFontStack(options.urduFont ?? "noto-nastaliq");
+
+    ctx.save();
+    ctx.direction = "rtl";
+    ctx.textAlign = "center";
+    ctx.fillStyle = pal.accent;
+    ctx.font = `400 28px ${arFontStack}`;
+    active.headerPreviewLines.slice(0, 2).forEach((line, idx) => {
+      ctx.fillText(line, s.x + s.width / 2, s.y + 118 + idx * 48);
+    });
+    ctx.restore();
+
+    // Active Urdu voiceover chunk inside contrast panel
+    const activeCue =
+      active.cues.find((c) => tSec >= c.startSec && tSec <= c.endSec) ??
+      active.cues[0];
+    if (activeCue) {
+      ctx.save();
+      ctx.fillStyle = pal.panel;
+      ctx.fillRect(s.x + 16, s.y + 260, s.width - 32, 680);
+      ctx.strokeStyle = pal.divider;
+      ctx.lineWidth = 1;
+      ctx.strokeRect(s.x + 16, s.y + 260, s.width - 32, 680);
+
+      ctx.direction = "rtl";
+      ctx.textAlign = "center";
+      ctx.fillStyle = pal.text;
+      ctx.font = `400 ${active.fontSize}px ${urFontStack}`;
+      const wrapped = wrapCanvasText(ctx, activeCue.text, s.width - 80);
+      const urLineH = active.fontSize * NASTALIQ_LINE_HEIGHT;
+      wrapped.slice(0, 5).forEach((line, idx) => {
+        ctx.fillText(
+          line,
+          s.x + s.width / 2,
+          s.y + 380 + NASTALIQ_TOP_PADDING + idx * urLineH
+        );
+      });
+      ctx.restore();
     }
     return;
   }

@@ -45,6 +45,35 @@ import { saveAndShareBlob } from "@/lib/nativeFiles";
 import { adService } from "@/lib/ads/adService";
 import { isNative } from "@/lib/platform";
 import { Head } from "@/seo/Head";
+import {
+  ARABIC_QURAN_FONTS,
+  URDU_FONTS,
+  ensureFontsLoaded,
+  getDefaultArabicFont,
+  getDefaultScript,
+  type ArabicFontId,
+  type QuranScript,
+  type UrduFontId,
+} from "@/config/fonts";
+import type { PointerStyle } from "@/lib/video/pointers";
+import type { BgStyle, MotionIntensity } from "@/lib/video/backgrounds";
+import {
+  DEFAULT_VOICE_ID,
+  URDU_VOICES,
+  VOICE_RATE_DEFAULT,
+  VOICE_RATE_MAX,
+  VOICE_RATE_MIN,
+  getVoiceById,
+  type VoiceMode,
+} from "@/config/voices";
+import { VoiceRecorder } from "@/components/studio/VoiceRecorder";
+import {
+  loadSurahTimings,
+  loadSurahWordsUr,
+  type AyahTimingEntry,
+} from "@/lib/video/wordTiming";
+import { base64ToArrayBuffer, synthesizeUrduTts } from "@/lib/tts";
+import { trimAudioBuffer } from "@/lib/video/audioMix";
 
 const STUDIO_STORAGE_KEY = "istikhara:studio916:v1";
 
@@ -54,6 +83,19 @@ interface SavedStudioPrefs {
   reciter: ReciterId;
   platformId: Platform916Id;
   theme: VideoTheme;
+  script?: QuranScript;
+  arabicFont?: ArabicFontId;
+  urduFont?: UrduFontId;
+  pointerStyle?: PointerStyle;
+  wordByWordMeaning?: boolean;
+  bgStyle?: BgStyle;
+  motionIntensity?: MotionIntensity;
+  audioReactiveGlow?: boolean;
+  particles?: boolean;
+  voiceMode?: VoiceMode;
+  voiceId?: string;
+  voiceRate?: number;
+  userVoiceName?: string;
   arabicMaxSize: number;
   urduMaxSize: number;
   readingSpeed: number;
@@ -108,6 +150,54 @@ export default function Studio() {
 
   const [reciter, setReciter] = useState<ReciterId>(initialPrefs.reciter);
   const [platformId, setPlatformId] = useState<Platform916Id>(initialPrefs.platformId);
+  const defaultScript = settings.script ?? getDefaultScript(uiLang);
+  const [script, setScript] = useState<QuranScript>(initialPrefs.script ?? defaultScript);
+  const [arabicFont, setArabicFont] = useState<ArabicFontId>(
+    initialPrefs.arabicFont ?? getDefaultArabicFont(initialPrefs.script ?? defaultScript)
+  );
+  const [urduFont, setUrduFont] = useState<UrduFontId>(
+    initialPrefs.urduFont ?? "noto-nastaliq"
+  );
+  const [pointerStyle, setPointerStyle] = useState<PointerStyle>(
+    initialPrefs.pointerStyle ?? "hand"
+  );
+  const [wordByWordMeaning, setWordByWordMeaning] = useState<boolean>(
+    initialPrefs.wordByWordMeaning ?? false
+  );
+  const [bgStyle, setBgStyle] = useState<BgStyle>(
+    initialPrefs.bgStyle ?? "girih"
+  );
+  const [motionIntensity, setMotionIntensity] = useState<MotionIntensity>(
+    initialPrefs.motionIntensity ?? "calm"
+  );
+  const [audioReactiveGlow, setAudioReactiveGlow] = useState<boolean>(
+    initialPrefs.audioReactiveGlow ?? true
+  );
+  const [particles, setParticles] = useState<boolean>(
+    initialPrefs.particles ?? false
+  );
+  const [voiceMode, setVoiceMode] = useState<VoiceMode>(
+    initialPrefs.voiceMode ?? "none"
+  );
+  const [voiceId, setVoiceId] = useState<string>(
+    initialPrefs.voiceId ?? DEFAULT_VOICE_ID
+  );
+  const [voiceRate, setVoiceRate] = useState<number>(
+    initialPrefs.voiceRate ?? VOICE_RATE_DEFAULT
+  );
+  const [userVoiceName, setUserVoiceName] = useState<string>(
+    initialPrefs.userVoiceName ?? ""
+  );
+  const [recordedVoice, setRecordedVoice] = useState<{
+    blob: Blob;
+    url: string;
+    durationSec: number;
+    trimStartSec: number;
+    trimEndSec: number;
+  } | null>(null);
+  const [ayahWordData, setAyahWordData] = useState<
+    Array<{ entry?: AyahTimingEntry | null; meaningsUr?: string[] }>
+  >([]);
   const [theme, setTheme] = useState<VideoTheme>(initialPrefs.theme);
   const [arabicMaxSize, setArabicMaxSize] = useState(initialPrefs.arabicMaxSize);
   const [urduMaxSize, setUrduMaxSize] = useState(initialPrefs.urduMaxSize);
@@ -171,7 +261,42 @@ export default function Studio() {
     showQr,
     showSurahHeader,
     tafseerAudio,
+    script,
+    arabicFont,
+    urduFont,
+    pointerStyle,
+    wordByWordMeaning,
+    bgStyle,
+    motionIntensity,
+    audioReactiveGlow,
+    particles,
+    voiceMode,
+    voiceId,
+    voiceRate,
+    userVoiceName,
   ]);
+
+  useEffect(() => {
+    if (ayahs.length === 0) return;
+    let active = true;
+    Promise.all(
+      ayahs.map(async (a) => {
+        const [tFile, wUr] = await Promise.all([
+          loadSurahTimings(reciter, a.surahNumber),
+          wordByWordMeaning ? loadSurahWordsUr(a.surahNumber) : Promise.resolve(null),
+        ]);
+        return {
+          entry: tFile?.ayahs.find((x) => x.ayah === a.ayahNumber) ?? null,
+          meaningsUr: wUr?.[String(a.ayahNumber)] ?? [],
+        };
+      })
+    ).then((res) => {
+      if (active) setAyahWordData(res);
+    });
+    return () => {
+      active = false;
+    };
+  }, [ayahs, reciter, wordByWordMeaning]);
 
   useEffect(() => {
     getQuranIndex().then((idx) => setSurahs(idx.surahs)).catch(() => {});
@@ -180,7 +305,7 @@ export default function Studio() {
   useEffect(() => {
     let active = true;
     setLoadingAyahs(true);
-    getAyahRange(surah, startAyah, rangeCount)
+    getAyahRange(surah, startAyah, rangeCount, script, arabicFont)
       .then((list) => {
         if (!active) return;
         setAyahs(list);
@@ -207,7 +332,7 @@ export default function Studio() {
     return () => {
       active = false;
     };
-  }, [surah, startAyah, rangeCount]);
+  }, [surah, startAyah, rangeCount, script, arabicFont]);
 
   // Load Urdu tafseer when in Modes B or C
   useEffect(() => {
@@ -257,9 +382,35 @@ export default function Studio() {
     [tafseerParagraphs, selectedIndices]
   );
 
+  const voiceInfo = useMemo(() => getVoiceById(voiceId), [voiceId]);
+  const voiceCreditUr =
+    voiceMode === "ai-translation" || voiceMode === "ai-tafseer"
+      ? `AI آواز: ${voiceInfo.voiceId}`
+      : voiceMode === "record"
+        ? userVoiceName.trim()
+          ? `آواز: ${userVoiceName.trim()}`
+          : "آواز: صارف کی ریکارڈنگ"
+        : undefined;
+
+  const voicePromptText = useMemo(() => {
+    if (voiceMode === "ai-tafseer" || (voiceMode === "record" && mode !== "urdu-tarjuma" && selectedTexts.length > 0)) {
+      return selectedTexts.join(" ");
+    }
+    return ayahs.map((a) => a.urduText).join(" ");
+  }, [voiceMode, mode, selectedTexts, ayahs]);
+
   const options: Studio916Options = {
     mode,
     theme,
+    bgStyle,
+    motionIntensity,
+    audioReactiveGlow,
+    particles,
+    script,
+    arabicFont,
+    urduFont,
+    pointerStyle,
+    wordByWordMeaning,
     arabicMaxSize,
     urduMaxSize,
     showQr,
@@ -268,28 +419,85 @@ export default function Studio() {
     tafseerAudio,
     tafsirNameUr: tafsirInfo.nameUr,
     tafsirAuthorUr: tafsirInfo.authorUr,
+    voiceCreditUr,
   };
 
   const previewTimeline = useMemo(() => {
-    const estDurations = ayahs.map((a) => Math.max(4, a.arabicText.length * 0.08));
-    return build916Timeline(ayahs, estDurations, selectedTexts, options);
-  }, [ayahs, selectedTexts, mode, theme, arabicMaxSize, urduMaxSize, readingSpeed, showQr, showSurahHeader, tafsirInfo]);
+    const estDurations = ayahs.map((a, i) => {
+      const entry = ayahWordData[i]?.entry;
+      if (entry && entry.toMs > entry.fromMs) {
+        return Math.max(2, (entry.toMs - entry.fromMs) / 1000);
+      }
+      return Math.max(4, a.arabicText.length * 0.08);
+    });
+    const voPreview =
+      voiceMode !== "none" && voicePromptText.trim()
+        ? {
+            text: voicePromptText,
+            durationSec:
+              voiceMode === "record" && recordedVoice
+                ? Math.max(1, recordedVoice.trimEndSec - recordedVoice.trimStartSec)
+                : Math.max(3, voicePromptText.split(/\s+/).length / 2.2),
+          }
+        : undefined;
+    return build916Timeline(
+      ayahs,
+      estDurations,
+      selectedTexts,
+      options,
+      ayahWordData,
+      voPreview
+    );
+  }, [
+    ayahs,
+    ayahWordData,
+    selectedTexts,
+    mode,
+    theme,
+    bgStyle,
+    motionIntensity,
+    audioReactiveGlow,
+    particles,
+    script,
+    arabicFont,
+    urduFont,
+    pointerStyle,
+    wordByWordMeaning,
+    arabicMaxSize,
+    urduMaxSize,
+    readingSpeed,
+    showQr,
+    showSurahHeader,
+    tafsirInfo,
+    voiceMode,
+    voiceCreditUr,
+    voicePromptText,
+    recordedVoice,
+  ]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas || ayahs.length === 0) return;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
-    render916Frame(
-      ctx,
-      Math.min(previewTime, previewTimeline.totalDurationSec),
-      previewTimeline.totalDurationSec,
-      previewTimeline.frames,
-      options,
-      reciter,
-      qrImgRef.current
-    );
-  }, [previewTime, previewTimeline, options, reciter, ayahs.length]);
+    let cancelled = false;
+    ensureFontsLoaded().then(() => {
+      if (cancelled) return;
+      render916Frame(
+        ctx,
+        Math.min(previewTime, previewTimeline.totalDurationSec),
+        previewTimeline.totalDurationSec,
+        previewTimeline.frames,
+        options,
+        reciter,
+        qrImgRef.current,
+        "پریویو"
+      );
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [ayahs, previewTime, previewTimeline, reciter]);
 
   useEffect(() => {
     if (!playingPreview) return;
@@ -320,20 +528,74 @@ export default function Studio() {
     abortRef.current = controller;
 
     try {
+      let voiceoverPayload: { buffer: AudioBuffer; text: string } | null = null;
+
+      if (voiceMode === "ai-translation" || voiceMode === "ai-tafseer") {
+        setProgress({ pct: 2, etaSec: 18, stage: "AI آواز تیار ہو رہی ہے…" });
+        const tts = await synthesizeUrduTts({
+          text: voicePromptText,
+          voiceId,
+          rate: voiceRate,
+        });
+        const AudioCtx =
+          window.AudioContext ||
+          (window as unknown as { webkitAudioContext: typeof AudioContext })
+            .webkitAudioContext;
+        const tmpCtx = new AudioCtx();
+        try {
+          const decoded = await tmpCtx.decodeAudioData(
+            base64ToArrayBuffer(tts.audioBase64)
+          );
+          voiceoverPayload = { buffer: decoded, text: voicePromptText };
+        } finally {
+          await tmpCtx.close();
+        }
+      } else if (voiceMode === "record" && recordedVoice) {
+        setProgress({ pct: 2, etaSec: 18, stage: "ریکارڈنگ پروسیس ہو رہی ہے…" });
+        const AudioCtx =
+          window.AudioContext ||
+          (window as unknown as { webkitAudioContext: typeof AudioContext })
+            .webkitAudioContext;
+        const tmpCtx = new AudioCtx();
+        try {
+          const arr = await recordedVoice.blob.arrayBuffer();
+          const decoded = await tmpCtx.decodeAudioData(arr);
+          const trimmed = trimAudioBuffer(
+            tmpCtx,
+            decoded,
+            recordedVoice.trimStartSec,
+            recordedVoice.trimEndSec
+          );
+          voiceoverPayload = { buffer: trimmed, text: voicePromptText };
+        } finally {
+          await tmpCtx.close();
+        }
+      }
+
       const { export916Mp4 } = await import("@/lib/video/encode");
       const res = await export916Mp4({
         ayahs,
         selectedTafseerParagraphs: selectedTexts,
         options,
         reciter,
+        voiceover: voiceoverPayload,
         signal: controller.signal,
         onProgress: setProgress,
       });
 
       const primary = ayahs[0];
       const safeSurah = primary.surahNameEn.replace(/[^a-zA-Z0-9_-]/g, "");
-      const modeSlug = mode === "urdu-tarjuma" ? "urdu-tarjuma" : "urdu-tafseer";
-      const filename = `Istikhara_${safeSurah}_${primary.surahNumber}-${primary.ayahNumber}_${modeSlug}_9x16.mp4`;
+      const aRange =
+        ayahs.length > 1
+          ? `${primary.ayahNumber}-${ayahs[ayahs.length - 1].ayahNumber}`
+          : `${primary.ayahNumber}`;
+      const voiceTag =
+        voiceMode === "none"
+          ? "recitation"
+          : voiceMode === "record"
+            ? "uservoice"
+            : "aivoice";
+      const filename = `Istikhara_${safeSurah}_${primary.surahNumber}-${aRange}_${script}_${voiceTag}_9x16.mp4`;
 
       setExported({
         mp4Url: URL.createObjectURL(res.mp4Blob),
@@ -423,7 +685,7 @@ export default function Studio() {
     : BRAND.appUrl;
 
   const captionText = primaryAyah
-    ? `📖 سورۃ ${primaryAyah.surahNameAr} ${primaryAyah.surahNumber}:${primaryAyah.ayahNumber}\n${primaryAyah.urduText.slice(0, 120).trim()}…\n🎙 تلاوت: ${getReciterName(reciter, "ur")}${mode !== "urdu-tarjuma" ? `   📚 تفسیر: ${tafsirInfo.nameUr}` : ""}\n🔗 ${shareUrl}\n#استخارہ #Istikhara #QuranVerse #قرآن #تفسیر #IslamicReels`
+    ? `📖 سورۃ ${primaryAyah.surahNameAr} ${primaryAyah.surahNumber}:${primaryAyah.ayahNumber}\n${primaryAyah.urduText.slice(0, 120).trim()}…\n🎙 تلاوت: ${getReciterName(reciter, "ur")}${mode !== "urdu-tarjuma" ? `   📚 تفسیر: ${tafsirInfo.nameUr}` : ""}${voiceCreditUr ? `   🔊 ${voiceCreditUr}` : ""}\n🔗 ${shareUrl}\n#استخارہ #Istikhara #QuranVerse #قرآن #تفسیر #IslamicReels`
     : "";
 
   const exceedsDuration =
@@ -693,10 +955,18 @@ export default function Studio() {
                 >
                   {RECITERS.map((r) => (
                     <option key={r.id} value={r.id}>
-                      {isUrdu ? r.nameUr : r.nameEn}
+                      {isUrdu ? r.nameUr : r.nameEn}{" "}
+                      {r.wordTimed ? "✓ لفظ بہ لفظ" : ""}
                     </option>
                   ))}
                 </select>
+                {previewTimeline.frames.some(
+                  (f) => f.kind === "verse" && f.approximateSync
+                ) && (
+                  <span className="block text-[11px] text-amber-300">
+                    اندازاً ہم آہنگی / approximate sync
+                  </span>
+                )}
               </label>
 
               <label className="text-xs space-y-1">
@@ -709,9 +979,233 @@ export default function Studio() {
                   <option value="midnight_gold">Midnight Gold</option>
                   <option value="emerald">Emerald</option>
                   <option value="ivory">Ivory</option>
+                  <option value="royal_blue">Royal Blue</option>
                 </select>
               </label>
             </div>
+
+            {/* Script & Fonts */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <label className="text-xs space-y-1">
+                <span>رسم الخط / Script</span>
+                <select
+                  value={script}
+                  onChange={(e) => {
+                    const next = e.target.value as QuranScript;
+                    setScript(next);
+                    setArabicFont(getDefaultArabicFont(next));
+                  }}
+                  className="w-full rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-primary)] px-2.5 py-2 text-sm"
+                >
+                  <option value="indopak">انڈو پاک (IndoPak)</option>
+                  <option value="madani">مدنی / عثمانی (Madani)</option>
+                </select>
+              </label>
+
+              <label className="text-xs space-y-1">
+                <span>عربی فونٹ / Arabic Font</span>
+                <select
+                  value={arabicFont}
+                  onChange={(e) => setArabicFont(e.target.value as ArabicFontId)}
+                  className="w-full rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-primary)] px-2.5 py-2 text-sm"
+                >
+                  {Object.values(ARABIC_QURAN_FONTS)
+                    .filter((f) => !f.script || f.script === script)
+                    .map((f) => (
+                      <option key={f.id} value={f.id}>
+                        {isUrdu ? f.labelUr : f.labelEn}
+                      </option>
+                    ))}
+                </select>
+              </label>
+
+              <label className="text-xs space-y-1">
+                <span>اردو فونٹ / Urdu Font</span>
+                <select
+                  value={urduFont}
+                  onChange={(e) => setUrduFont(e.target.value as UrduFontId)}
+                  className="w-full rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-primary)] px-2.5 py-2 text-sm"
+                >
+                  {Object.values(URDU_FONTS).map((f) => (
+                    <option key={f.id} value={f.id}>
+                      {isUrdu ? f.labelUr : f.labelEn}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+
+            {/* Hand Reading Pointer & Word Meaning */}
+            <details className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-primary)]/40 p-3 space-y-3" open>
+              <summary className="cursor-pointer text-xs font-semibold text-[var(--accent-gold)]">
+                پڑھنے کا اشارہ اور لفظی ترجمہ / Hand Reading
+              </summary>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                <label className="text-xs space-y-1">
+                  <span>پڑھنے کا اشارہ / Pointer Style</span>
+                  <select
+                    value={pointerStyle}
+                    onChange={(e) => setPointerStyle(e.target.value as PointerStyle)}
+                    className="w-full rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-primary)] px-2.5 py-2 text-sm"
+                  >
+                    <option value="hand">☝ ہاتھ (Gold Line-Art Hand)</option>
+                    <option value="qalam">✒ قلم (Calligraphy Qalam)</option>
+                    <option value="underline">انڈرلائن (Gold Underline)</option>
+                    <option value="glow">صرف روشنی (Glow Only)</option>
+                    <option value="off">بند (Off)</option>
+                  </select>
+                </label>
+
+                <label className="inline-flex items-center gap-2 text-xs cursor-pointer pt-4">
+                  <input
+                    type="checkbox"
+                    checked={wordByWordMeaning}
+                    onChange={(e) => setWordByWordMeaning(e.target.checked)}
+                    className="accent-[#C9A227]"
+                  />
+                  <span>لفظی ترجمہ / Word-by-Word Urdu Meaning</span>
+                </label>
+              </div>
+            </details>
+
+            {/* Animated Geometric Backgrounds */}
+            <details className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-primary)]/40 p-3 space-y-3">
+              <summary className="cursor-pointer text-xs font-semibold text-[var(--accent-gold)]">
+                پس منظر اور حرکت / Animated Geometric Background
+              </summary>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                <label className="text-xs space-y-1">
+                  <span>پس منظر انداز / Pattern Style</span>
+                  <select
+                    value={bgStyle}
+                    onChange={(e) => setBgStyle(e.target.value as BgStyle)}
+                    className="w-full rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-primary)] px-2.5 py-2 text-sm"
+                  >
+                    <option value="girih">گرہ ستارہ جال (Girih Star Lattice)</option>
+                    <option value="rosette">۱۲-کونہ گلِ منڈالا (Rosette Mandala)</option>
+                    <option value="hexagonal">شش پہلو عربیسک (Hexagonal Arabesque)</option>
+                    <option value="mihrab">محرابِ مسجد (Mihrab Arch)</option>
+                    <option value="night_dome">شبِ گنبد (Night Dome)</option>
+                  </select>
+                </label>
+
+                <label className="text-xs space-y-1">
+                  <span>حرکت کی شدت / Motion Intensity</span>
+                  <select
+                    value={motionIntensity}
+                    onChange={(e) => setMotionIntensity(e.target.value as MotionIntensity)}
+                    className="w-full rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-primary)] px-2.5 py-2 text-sm"
+                  >
+                    <option value="calm">پُرسکون (Calm)</option>
+                    <option value="medium">متوسط (Medium)</option>
+                    <option value="vivid">متحرک (Vivid)</option>
+                  </select>
+                </label>
+              </div>
+              <div className="flex flex-wrap gap-4 text-xs pt-1">
+                <label className="inline-flex items-center gap-1.5 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={audioReactiveGlow}
+                    onChange={(e) => setAudioReactiveGlow(e.target.checked)}
+                    className="accent-[#C9A227]"
+                  />
+                  <span>تلاوت کے ساتھ ہلکی چمک (Audio-Reactive Glow)</span>
+                </label>
+                <label className="inline-flex items-center gap-1.5 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={particles}
+                    onChange={(e) => setParticles(e.target.checked)}
+                    className="accent-[#C9A227]"
+                  />
+                  <span>نورانی ذرات (Light Particles)</span>
+                </label>
+              </div>
+            </details>
+
+            {/* Urdu Voiceover */}
+            <details className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-primary)]/40 p-3 space-y-3">
+              <summary className="cursor-pointer text-xs font-semibold text-[var(--accent-gold)]">
+                آواز (اردو وائس اوور) / Urdu Voiceover
+              </summary>
+              <div className="space-y-3 pt-2">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  {(
+                    [
+                      { id: "none", label: "صرف تلاوت" },
+                      { id: "ai-translation", label: "AI ترجمہ آواز" },
+                      { id: "ai-tafseer", label: "AI تفسیر آواز" },
+                      { id: "record", label: "میری اپنی آواز" },
+                    ] as Array<{ id: VoiceMode; label: string }>
+                  ).map((vm) => (
+                    <button
+                      key={vm.id}
+                      type="button"
+                      onClick={() => setVoiceMode(vm.id)}
+                      className={`px-2.5 py-2 rounded-xl text-xs border transition-colors ${
+                        voiceMode === vm.id
+                          ? "bg-[var(--gold)] text-[#0A1A2F] border-[var(--gold)] font-semibold"
+                          : "border-[var(--border-subtle)] text-[var(--text-primary)]"
+                      }`}
+                    >
+                      {vm.label}
+                    </button>
+                  ))}
+                </div>
+
+                {(voiceMode === "ai-translation" || voiceMode === "ai-tafseer") && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                    <label className="space-y-1">
+                      <span>AI آواز منتخب کریں</span>
+                      <select
+                        value={voiceId}
+                        onChange={(e) => setVoiceId(e.target.value)}
+                        className="w-full rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-primary)] px-2.5 py-2 text-sm"
+                      >
+                        {URDU_VOICES.map((v) => (
+                          <option key={v.id} value={v.id}>
+                            {isUrdu ? v.labelUr : v.labelEn}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <label className="space-y-1">
+                      <span>رفتار / Speed ({voiceRate.toFixed(2)}x)</span>
+                      <input
+                        type="range"
+                        min={VOICE_RATE_MIN}
+                        max={VOICE_RATE_MAX}
+                        step={0.05}
+                        value={voiceRate}
+                        onChange={(e) => setVoiceRate(Number(e.target.value))}
+                        className="w-full accent-[#C9A227]"
+                      />
+                    </label>
+                  </div>
+                )}
+
+                {voiceMode === "record" && (
+                  <div className="space-y-2">
+                    <label className="block text-xs space-y-1">
+                      <span>آپ کا نام (اختیاری — کریڈٹ کے لیے)</span>
+                      <input
+                        type="text"
+                        value={userVoiceName}
+                        onChange={(e) => setUserVoiceName(e.target.value)}
+                        placeholder={isUrdu ? "مثلاً: محمد علی" : "e.g. Muhammad Ali"}
+                        className="w-full rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-primary)] px-3 py-2 text-xs"
+                      />
+                    </label>
+                    <VoiceRecorder
+                      promptText={voicePromptText}
+                      isUrdu={isUrdu}
+                      onRecorded={setRecordedVoice}
+                    />
+                  </div>
+                )}
+              </div>
+            </details>
 
             {/* Sliders & Toggles */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
