@@ -168,6 +168,7 @@ export function render916Frame(
   drawAnimatedBackground(ctx, tSec, {
     category: options.bgCategory ?? "geometric",
     style: options.bgStyle ?? "girih",
+    layeredDesign: options.layeredDesign,
     theme: options.theme,
     paperStyle: options.paperStyle ?? "whiteboard",
     solidConfig: options.solidConfig,

@@ -4,25 +4,31 @@ const ALLOWED_RECITERS = new Set([
   "ar.husary",
 ]);
 
-export default async function handler(req: any, res: any) {
-  const r = String(req.query?.r || "");
-  const n = Number(req.query?.n);
+export async function GET(req: Request) {
+  const url = new URL(req.url);
+  const r = url.searchParams.get("r") || "";
+  const n = Number(url.searchParams.get("n"));
 
   if (!ALLOWED_RECITERS.has(r) || !Number.isInteger(n) || n < 1 || n > 6236) {
-    res.status(400).json({ error: "Invalid reciter or ayah number" });
-    return;
+    return new Response(JSON.stringify({ error: "Invalid reciter or ayah number" }), {
+      status: 400,
+      headers: { "Content-Type": "application/json" },
+    });
   }
 
   const target = `https://cdn.islamic.network/quran/audio/128/${r}/${n}.mp3`;
   const upstream = await fetch(target);
   if (!upstream.ok) {
-    res.status(upstream.status).send("Audio unavailable");
-    return;
+    return new Response("Audio unavailable", { status: upstream.status });
   }
 
-  const buf = Buffer.from(await upstream.arrayBuffer());
-  res.setHeader("Content-Type", "audio/mpeg");
-  res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.status(200).send(buf);
+  const buf = await upstream.arrayBuffer();
+  return new Response(buf, {
+    status: 200,
+    headers: {
+      "Content-Type": "audio/mpeg",
+      "Cache-Control": "public, max-age=31536000, immutable",
+      "Access-Control-Allow-Origin": "*",
+    },
+  });
 }

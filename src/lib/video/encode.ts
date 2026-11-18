@@ -30,62 +30,45 @@ export interface EncodeProgress {
   stage: string;
 }
 
+async function fetchWithTimeout(
+  url: string,
+  timeoutMs: number,
+  signal?: AbortSignal
+): Promise<Response> {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+  const onParentAbort = () => ctrl.abort();
+  signal?.addEventListener("abort", onParentAbort, { once: true });
+  try {
+    return await fetch(url, { signal: ctrl.signal });
+  } finally {
+    clearTimeout(timer);
+    signal?.removeEventListener("abort", onParentAbort);
+  }
+}
+
 async function fetchAudioBuffer(
   ctx: AudioContext,
   ayah: FetchedAyah,
   reciter: ReciterId,
-  chapterBufferCache: Map<number, AudioBuffer>
+  signal?: AbortSignal
 ): Promise<AudioBuffer> {
-  // 1. Prefer the exact QDC chapter recording that matches QDC word timings (CORS *)
-  try {
-    const timings = await loadSurahTimings(reciter, ayah.surahNumber);
-    const entry = timings?.ayahs.find((x) => x.ayah === ayah.ayahNumber);
-    if (timings && entry && entry.toMs > entry.fromMs) {
-      let chapterBuf = chapterBufferCache.get(ayah.surahNumber);
-      if (!chapterBuf) {
-        const cfg = getReciterConfig(reciter);
-        const chapterUrl =
-          timings.audioUrl || `${cfg.qdcChapterBaseUrl}/${ayah.surahNumber}.mp3`;
-        const res = await fetch(chapterUrl);
-        if (res.ok) {
-          const arr = await res.arrayBuffer();
-          chapterBuf = await ctx.decodeAudioData(arr);
-          chapterBufferCache.set(ayah.surahNumber, chapterBuf);
-        }
-      }
-      if (chapterBuf) {
-        const sr = chapterBuf.sampleRate;
-        const startSample = Math.max(0, Math.floor((entry.fromMs / 1000) * sr));
-        const endSample = Math.min(
-          chapterBuf.length,
-          Math.ceil((entry.toMs / 1000) * sr)
-        );
-        const len = Math.max(1, endSample - startSample);
-        const sliced = ctx.createBuffer(chapterBuf.numberOfChannels, len, sr);
-        for (let ch = 0; ch < chapterBuf.numberOfChannels; ch++) {
-          sliced
-            .getChannelData(ch)
-            .set(chapterBuf.getChannelData(ch).subarray(startSample, endSample));
-        }
-        return sliced;
-      }
-    }
-  } catch {
-    // fall back to per-ayah URLs
-  }
-
+  // Fast per-ayah MP3s first (everyayah has CORS *, /api/audio proxies with CORS)
   const urls = [
     getEveryAyahUrl(reciter, ayah.surahNumber, ayah.ayahNumber),
-    getAudioCdnUrl(ayah.globalNumber, reciter),
     getAudioProxyUrl(ayah.globalNumber, reciter),
+    getAudioCdnUrl(ayah.globalNumber, reciter),
   ];
   for (const url of urls) {
+    if (signal?.aborted) throw new Error("Export cancelled");
     try {
-      const res = await fetch(url);
+      const res = await fetchWithTimeout(url, 12_000, signal);
       if (!res.ok) continue;
       const arr = await res.arrayBuffer();
+      if (arr.byteLength < 512) continue;
       return await ctx.decodeAudioData(arr);
     } catch {
+      if (signal?.aborted) throw new Error("Export cancelled");
       // try next fallback
     }
   }
@@ -163,18 +146,18 @@ export async function loadQrImage916(
 
 export async function loadRecitationBuffers(
   ayahs: FetchedAyah[],
-  reciter: ReciterId
+  reciter: ReciterId,
+  signal?: AbortSignal
 ): Promise<{ audioBuffers: AudioBuffer[]; durations: number[] }> {
   const AudioCtx =
     window.AudioContext ||
     (window as unknown as { webkitAudioContext: typeof AudioContext })
       .webkitAudioContext;
   const ctx = new AudioCtx();
-  const chapterCache = new Map<number, AudioBuffer>();
   try {
     const audioBuffers: AudioBuffer[] = [];
     for (const a of ayahs) {
-      audioBuffers.push(await fetchAudioBuffer(ctx, a, reciter, chapterCache));
+      audioBuffers.push(await fetchAudioBuffer(ctx, a, reciter, signal));
     }
     return {
       audioBuffers,
@@ -220,7 +203,7 @@ export async function export916Mp4(opts: {
   }
 
   onProgress?.({ pct: 5, etaSec: 0, stage: "تلاوت لوڈ ہو رہی ہے…" });
-  const { audioBuffers, durations } = await loadRecitationBuffers(ayahs, reciter);
+  const { audioBuffers, durations } = await loadRecitationBuffers(ayahs, reciter, signal);
   const ayahWordData = await Promise.all(
     ayahs.map(async (a) => {
       const [tFile, wUr] = await Promise.all([

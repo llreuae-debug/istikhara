@@ -24,10 +24,12 @@ import { HOOK_PRESETS } from "@/content/hooks";
 import { SHORTS_TEMPLATES, type CaptionStyle, type PageTransition, type ShortsTemplate, type TemplateId } from "@/config/templates";
 import {
   GRADIENT_PRESETS,
+  LAYERED_DESIGNS,
   SOLID_SWATCHES,
   type BgCategory,
   type BgStyle,
   type GradientBgConfig,
+  type LayeredDesignId,
   type MediaBgConfig,
   type MotionIntensity,
   type PaperStyle,
@@ -65,6 +67,8 @@ export interface StudioControlsProps {
   setBgCategory: (c: BgCategory) => void;
   bgStyle: BgStyle;
   setBgStyle: (s: BgStyle) => void;
+  layeredDesign: LayeredDesignId;
+  setLayeredDesign: (l: LayeredDesignId) => void;
   theme: VideoTheme;
   setTheme: (t: VideoTheme) => void;
   paperStyle: PaperStyle;
@@ -342,6 +346,7 @@ export function StudioControlsPanel(p: StudioControlsProps) {
             <div className="flex flex-wrap gap-1.5">
               {(
                 [
+                  { id: "layered", label: p.isUrdu ? "لیئرڈ (10)" : "Layered (10)" },
                   { id: "solid", label: p.isUrdu ? "یک رنگی" : "Solid" },
                   { id: "gradient", label: p.isUrdu ? "گریڈینٹ" : "Gradient" },
                   { id: "geometric", label: p.isUrdu ? "جیومیٹرک" : "Geometric" },
@@ -364,6 +369,48 @@ export function StudioControlsPanel(p: StudioControlsProps) {
               contrast OK
             </span>
           </div>
+
+          {p.bgCategory === "layered" && (
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5">
+              {LAYERED_DESIGNS.map((d) => {
+                const active = p.layeredDesign === d.id;
+                return (
+                  <button
+                    key={d.id}
+                    type="button"
+                    onClick={() => {
+                      p.setLayeredDesign(d.id);
+                      p.setTheme(d.isLight ? "ivory" : "midnight_gold");
+                    }}
+                    className={`text-start rounded-xl p-1.5 glass-border-mask transition-all cursor-pointer ${
+                      active ? "glass-3 ring-2 ring-[#C9A227]" : "glass-1 hover:opacity-95"
+                    }`}
+                  >
+                    <div
+                      className="relative h-20 rounded-lg overflow-hidden mb-1.5 border border-white/10"
+                      style={{ background: d.base }}
+                    >
+                      <div
+                        className="absolute -top-4 -left-4 w-16 h-16 rounded-2xl rotate-45 opacity-75"
+                        style={{ background: d.shapes[0] }}
+                      />
+                      <div
+                        className="absolute top-3 right-0 w-14 h-14 rounded-2xl rotate-45 opacity-70"
+                        style={{ background: d.shapes[2] }}
+                      />
+                      <div
+                        className="absolute -bottom-5 left-3 w-16 h-16 rounded-2xl rotate-45 opacity-75"
+                        style={{ background: d.shapes[1] }}
+                      />
+                    </div>
+                    <p className="text-[11px] font-medium truncate">
+                      {p.isUrdu ? d.labelUr : d.labelEn}
+                    </p>
+                  </button>
+                );
+              })}
+            </div>
+          )}
 
           {p.bgCategory === "solid" && (
             <div className="space-y-3">

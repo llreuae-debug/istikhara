@@ -71,6 +71,7 @@ import { tokenizeQuranWords } from "@/lib/video/wordTiming";
 import type {
   BgCategory,
   GradientBgConfig,
+  LayeredDesignId,
   MediaBgConfig,
   PaperStyle,
   SolidBgConfig,
@@ -234,6 +235,7 @@ export default function Studio() {
   const [studioTab, setStudioTab] = useState<StudioTabId>("template");
   const [templateId, setTemplateId] = useState<TemplateId>("geometric_night");
   const [bgCategory, setBgCategory] = useState<BgCategory>("geometric");
+  const [layeredDesign, setLayeredDesign] = useState<LayeredDesignId>("pearl_gray");
   const [paperStyle, setPaperStyle] = useState<PaperStyle>("whiteboard");
   const [solidConfig, setSolidConfig] = useState<SolidBgConfig>({
     color: "#0A1A2F",
@@ -630,6 +632,7 @@ export default function Studio() {
     theme,
     bgCategory,
     bgStyle,
+    layeredDesign,
     paperStyle,
     solidConfig,
     gradientConfig,
@@ -709,6 +712,7 @@ export default function Studio() {
     theme,
     bgCategory,
     bgStyle,
+    layeredDesign,
     paperStyle,
     solidConfig,
     gradientConfig,
@@ -1140,6 +1144,8 @@ export default function Studio() {
               setBgCategory={setBgCategory}
               bgStyle={bgStyle}
               setBgStyle={setBgStyle}
+              layeredDesign={layeredDesign}
+              setLayeredDesign={setLayeredDesign}
               theme={theme}
               setTheme={setTheme}
               paperStyle={paperStyle}

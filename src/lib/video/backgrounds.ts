@@ -1,12 +1,117 @@
 import { UNIVERSAL_SAFE_BOX, VIDEO_HEIGHT, VIDEO_WIDTH } from "@/config/platforms916";
 
 export type BgCategory =
+  | "layered"
   | "geometric"
   | "solid"
   | "gradient"
   | "paper"
   | "media"
   | "stock";
+
+export type LayeredDesignId =
+  | "pearl_gray"
+  | "warm_ivory"
+  | "sage_mist"
+  | "sky_frost"
+  | "rose_pearl"
+  | "sand_dune"
+  | "slate_night"
+  | "emerald_silk"
+  | "royal_velvet"
+  | "charcoal_gold";
+
+export interface LayeredDesign {
+  id: LayeredDesignId;
+  labelEn: string;
+  labelUr: string;
+  base: string;
+  shapes: [string, string, string, string];
+  isLight: boolean;
+}
+
+export const LAYERED_DESIGNS: LayeredDesign[] = [
+  {
+    id: "pearl_gray",
+    labelEn: "1. Pearl Gray",
+    labelUr: "۱۔ پرل گرے",
+    base: "#F2F3F5",
+    shapes: ["#E2E4E8", "#D2D5DB", "#FFFFFF", "#EAECEF"],
+    isLight: true,
+  },
+  {
+    id: "warm_ivory",
+    labelEn: "2. Warm Ivory",
+    labelUr: "۲۔ گرم عاج",
+    base: "#F7F3EA",
+    shapes: ["#EBE3D3", "#DFD3BC", "#FFFDF7", "#F2ECE0"],
+    isLight: true,
+  },
+  {
+    id: "sage_mist",
+    labelEn: "3. Sage Mist",
+    labelUr: "۳۔ سیج مسٹ",
+    base: "#EDF2EE",
+    shapes: ["#DCE6DE", "#C9D9CD", "#F8FBF9", "#E3ECE5"],
+    isLight: true,
+  },
+  {
+    id: "sky_frost",
+    labelEn: "4. Sky Frost",
+    labelUr: "۴۔ اسکائی فراسٹ",
+    base: "#EEF3F8",
+    shapes: ["#DCE6F2", "#C9D8EB", "#FAFCFF", "#E5EDF6"],
+    isLight: true,
+  },
+  {
+    id: "rose_pearl",
+    labelEn: "5. Rose Pearl",
+    labelUr: "۵۔ روز پرل",
+    base: "#F6EFF1",
+    shapes: ["#EBDCDE", "#DFC9CE", "#FFF9FA", "#F1E5E8"],
+    isLight: true,
+  },
+  {
+    id: "sand_dune",
+    labelEn: "6. Sand Dune",
+    labelUr: "۶۔ ریتلی دھند",
+    base: "#F2ECE1",
+    shapes: ["#E4D9C5", "#D6C6AC", "#FBF8F1", "#EBE2D2"],
+    isLight: true,
+  },
+  {
+    id: "slate_night",
+    labelEn: "7. Slate Night",
+    labelUr: "۷۔ سلیٹ نائٹ",
+    base: "#0F172A",
+    shapes: ["#1E293B", "#2B3A52", "#091020", "#172236"],
+    isLight: false,
+  },
+  {
+    id: "emerald_silk",
+    labelEn: "8. Emerald Silk",
+    labelUr: "۸۔ زمرد سلک",
+    base: "#07271E",
+    shapes: ["#0D3D30", "#145241", "#041A13", "#0A3227"],
+    isLight: false,
+  },
+  {
+    id: "royal_velvet",
+    labelEn: "9. Royal Indigo",
+    labelUr: "۹۔ شاہی نیلا",
+    base: "#0D1638",
+    shapes: ["#172557", "#203373", "#080E26", "#131F4A"],
+    isLight: false,
+  },
+  {
+    id: "charcoal_gold",
+    labelEn: "10. Obsidian",
+    labelUr: "۱۰۔ اوبسیڈین",
+    base: "#16171B",
+    shapes: ["#23252C", "#2F323B", "#0E0F12", "#1D1F25"],
+    isLight: false,
+  },
+];
 
 export type BgStyle =
   | "girih"
@@ -368,6 +473,7 @@ export function drawAnimatedBackground(
   options: {
     category?: BgCategory;
     style: BgStyle;
+    layeredDesign?: LayeredDesignId;
     theme: VideoTheme;
     paperStyle?: PaperStyle;
     solidConfig?: SolidBgConfig;
@@ -385,6 +491,52 @@ export function drawAnimatedBackground(
 ) {
   const category = options.category ?? "geometric";
   const pal = THEME_PALETTES[options.theme];
+
+  if (category === "layered") {
+    const design =
+      LAYERED_DESIGNS.find((d) => d.id === options.layeredDesign) ??
+      LAYERED_DESIGNS[0];
+    ctx.fillStyle = design.base;
+    ctx.fillRect(0, 0, VIDEO_WIDTH, VIDEO_HEIGHT);
+
+    const driftScale =
+      options.motion === "vivid" ? 28 : options.motion === "medium" ? 16 : 8;
+    const dx = Math.sin(tSec * 0.35) * driftScale;
+    const dy = Math.cos(tSec * 0.28) * driftScale;
+
+    // 6 overlapping 45-degree rounded diagonal shapes (matches clean minimal layered aesthetic)
+    const shapes: Array<{
+      cx: number;
+      cy: number;
+      w: number;
+      h: number;
+      r: number;
+      angle: number;
+      colorIdx: 0 | 1 | 2 | 3;
+      alpha: number;
+      mul: number;
+    }> = [
+      { cx: 180, cy: 190, w: 860, h: 860, r: 170, angle: Math.PI / 4, colorIdx: 0, alpha: 0.72, mul: 0.7 },
+      { cx: 980, cy: 310, w: 720, h: 720, r: 150, angle: Math.PI / 4, colorIdx: 2, alpha: 0.65, mul: -0.5 },
+      { cx: 430, cy: 760, w: 920, h: 920, r: 190, angle: Math.PI / 4, colorIdx: 3, alpha: 0.78, mul: 0.9 },
+      { cx: 920, cy: 1080, w: 740, h: 740, r: 165, angle: Math.PI / 4, colorIdx: 2, alpha: 0.58, mul: -0.8 },
+      { cx: 310, cy: 1480, w: 840, h: 840, r: 185, angle: Math.PI / 4, colorIdx: 1, alpha: 0.68, mul: 0.6 },
+      { cx: 880, cy: 1780, w: 780, h: 780, r: 160, angle: Math.PI / 4, colorIdx: 0, alpha: 0.72, mul: -0.6 },
+    ];
+
+    for (const sh of shapes) {
+      ctx.save();
+      ctx.globalAlpha = sh.alpha;
+      ctx.fillStyle = design.shapes[sh.colorIdx];
+      ctx.translate(sh.cx + dx * sh.mul, sh.cy + dy * sh.mul);
+      ctx.rotate(sh.angle);
+      ctx.beginPath();
+      ctx.roundRect(-sh.w / 2, -sh.h / 2, sh.w, sh.h, sh.r);
+      ctx.fill();
+      ctx.restore();
+    }
+    return;
+  }
 
   if (category === "solid") {
     ctx.fillStyle = options.solidConfig?.color || "#0A1A2F";

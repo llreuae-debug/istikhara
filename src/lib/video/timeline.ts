@@ -19,6 +19,7 @@ import type {
   BgCategory,
   BgStyle,
   GradientBgConfig,
+  LayeredDesignId,
   MediaBgConfig,
   MotionIntensity,
   PaperStyle,
@@ -48,6 +49,7 @@ export interface Studio916Options {
   theme: VideoTheme;
   bgCategory?: BgCategory;
   bgStyle?: BgStyle;
+  layeredDesign?: LayeredDesignId;
   paperStyle?: PaperStyle;
   solidConfig?: SolidBgConfig;
   gradientConfig?: GradientBgConfig;
