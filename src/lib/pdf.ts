@@ -1,6 +1,7 @@
 import html2canvas from "html2canvas";
 import { jsPDF } from "jspdf";
-import type { FetchedAyah } from "./quranApi";
+import type { FetchedAyah } from "./quran";
+import { saveAndShareBlob } from "./nativeFiles";
 
 export async function downloadVersePdf(
   element: HTMLElement,
@@ -30,5 +31,12 @@ export async function downloadVersePdf(
   const today = new Date().toISOString().slice(0, 10);
   const safeSurah = ayah.surahNameEn.replace(/[^a-zA-Z0-9_-]/g, "");
   const filename = `Istikhara_${safeSurah}-${ayah.ayahNumber}_${today}.pdf`;
-  pdf.save(filename);
+  const blob = pdf.output("blob");
+
+  await saveAndShareBlob({
+    blob,
+    filename,
+    kind: "pdf",
+    openShareSheet: true,
+  });
 }

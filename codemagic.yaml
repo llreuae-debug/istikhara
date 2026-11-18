@@ -1,0 +1,24 @@
+workflows:
+  istikhara-mobile:
+    name: Istikhara Android & iOS Build
+    max_build_duration: 60
+    environment:
+      node: 22
+      xcode: latest
+    scripts:
+      - name: Install dependencies
+        script: npm ci
+      - name: Build web assets & sync Capacitor
+        script: |
+          npm run build
+          npx cap sync
+      - name: Build Android Release AAB
+        script: |
+          cd android
+          ./gradlew bundleRelease
+      - name: Build iOS Archive (requires Apple signing credentials)
+        script: |
+          xcodebuild -workspace ios/App/App.xcworkspace -scheme App -configuration Release -archivePath build/App.xcarchive archive CODE_SIGNING_ALLOWED=NO
+    artifacts:
+      - android/app/build/outputs/bundle/release/*.aab
+      - build/App.xcarchive

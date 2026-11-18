@@ -7,6 +7,7 @@ import { AppHeader } from "@/components/AppShell";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { AnswerSummary } from "@/components/AnswerSummary";
 import { KeyTakeaways } from "@/components/KeyTakeaways";
+import { AdSlot } from "@/components/AdSlot";
 import { Head } from "@/seo/Head";
 import { buildArticleJsonLd, buildBreadcrumbJsonLd } from "@/seo/jsonld";
 
@@ -75,26 +76,26 @@ export default function ArticlePage({ slug }: { slug: string }) {
 
           <AnswerSummary text={summary} isUrdu={isUrdu} />
 
-          {article.sections.map((sec) => (
-            <section
-              key={sec.headingEn}
-              className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-card)] p-5 sm:p-6 space-y-2"
-            >
-              <h2
-                className={`font-semibold text-[var(--text-primary)] ${
-                  isUrdu ? "font-urdu-nastaliq text-lg" : "font-display-serif text-xl"
-                }`}
-              >
-                {isUrdu ? sec.headingUr : sec.headingEn}
-              </h2>
-              <p
-                className={`text-sm text-[var(--text-secondary)] ${
-                  isUrdu ? "font-urdu-nastaliq" : "leading-relaxed"
-                }`}
-              >
-                {isUrdu ? sec.bodyUr : sec.bodyEn}
-              </p>
-            </section>
+          {article.sections.map((sec, idx) => (
+            <div key={sec.headingEn} className="space-y-6">
+              <section className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-card)] p-5 sm:p-6 space-y-2">
+                <h2
+                  className={`font-semibold text-[var(--text-primary)] ${
+                    isUrdu ? "font-urdu-nastaliq text-lg" : "font-display-serif text-xl"
+                  }`}
+                >
+                  {isUrdu ? sec.headingUr : sec.headingEn}
+                </h2>
+                <p
+                  className={`text-sm text-[var(--text-secondary)] ${
+                    isUrdu ? "font-urdu-nastaliq" : "leading-relaxed"
+                  }`}
+                >
+                  {isUrdu ? sec.bodyUr : sec.bodyEn}
+                </p>
+              </section>
+              {idx === 1 && <AdSlot format="inline" slotKey="article" />}
+            </div>
           ))}
 
           <KeyTakeaways

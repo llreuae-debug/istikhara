@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion, useReducedMotion } from "framer-motion";
 import {
@@ -16,10 +16,14 @@ import {
 import { useApp } from "@/lib/i18n";
 import { getAudioCdnUrl, getAudioProxyUrl, type FetchedAyah } from "@/lib/quran";
 import type { ReciterEdition } from "@/lib/storage";
-import { downloadVersePdf } from "@/lib/pdf";
 import { trackEvent } from "@/lib/analytics";
-import { PdfTemplate } from "./PdfTemplate";
-import { ShareSheet } from "./ShareSheet";
+import { adService } from "@/lib/ads/adService";
+const ShareSheet = lazy(() =>
+  import("./ShareSheet").then((m) => ({ default: m.ShareSheet }))
+);
+const PdfTemplate = lazy(() =>
+  import("./PdfTemplate").then((m) => ({ default: m.PdfTemplate }))
+);
 
 interface VerseCardProps {
   ayah: FetchedAyah;
@@ -29,6 +33,7 @@ interface VerseCardProps {
   categoryLabel?: string;
   privateNote?: string;
   ctaSlot?: React.ReactNode;
+  animateReveal?: boolean;
 }
 
 export function VerseCard({
@@ -39,14 +44,16 @@ export function VerseCard({
   categoryLabel,
   privateNote,
   ctaSlot,
+  animateReveal = true,
 }: VerseCardProps) {
   const { settings, updateSettings, t, uiLang, appUrl } = useApp();
   const prefersReduced = useReducedMotion();
-  const animate = settings.animations && !prefersReduced;
+  const animate = animateReveal && settings.animations && !prefersReduced;
 
   const [playing, setPlaying] = useState(false);
   const [audioLoading, setAudioLoading] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
+  const [pdfMounted, setPdfMounted] = useState(false);
   const [pdfBusy, setPdfBusy] = useState(false);
   const [copiedVerse, setCopiedVerse] = useState(false);
   const [includeNoteInPdf, setIncludeNoteInPdf] = useState(false);
@@ -67,6 +74,7 @@ export function VerseCard({
     if (playing && audioRef.current) {
       audioRef.current.pause();
       setPlaying(false);
+      adService.setRecitationPlaying(false);
       return;
     }
 
@@ -76,30 +84,42 @@ export function VerseCard({
       if (!audioRef.current || audioRef.current.src !== url) {
         audioRef.current?.pause();
         audioRef.current = new Audio(url);
-        audioRef.current.onended = () => setPlaying(false);
+        audioRef.current.onended = () => {
+          setPlaying(false);
+          adService.setRecitationPlaying(false);
+        };
       }
       try {
         await audioRef.current.play();
       } catch {
         const proxyUrl = getAudioProxyUrl(ayah.globalNumber, settings.reciter);
         audioRef.current = new Audio(proxyUrl);
-        audioRef.current.onended = () => setPlaying(false);
+        audioRef.current.onended = () => {
+          setPlaying(false);
+          adService.setRecitationPlaying(false);
+        };
         await audioRef.current.play();
       }
       setPlaying(true);
+      adService.setRecitationPlaying(true);
     } catch {
       setPlaying(false);
+      adService.setRecitationPlaying(false);
     } finally {
       setAudioLoading(false);
     }
   };
 
   const handleDownloadPdf = async () => {
-    if (!pdfNodeRef.current) return;
+    setPdfMounted(true);
     setPdfBusy(true);
     try {
+      await new Promise((r) => setTimeout(r, 150));
+      if (!pdfNodeRef.current) return;
+      const { downloadVersePdf } = await import("@/lib/pdf");
       await downloadVersePdf(pdfNodeRef.current, ayah);
       trackEvent({ name: "pdf_downloaded" });
+      await adService.showInterstitialAfterExport();
     } finally {
       setPdfBusy(false);
     }
@@ -353,20 +373,28 @@ export function VerseCard({
         </footer>
       </motion.article>
 
-      <PdfTemplate
-        ref={pdfNodeRef}
-        ayah={ayah}
-        categoryLabel={categoryLabel}
-        privateNote={privateNote}
-        includeNote={includeNoteInPdf}
-        appUrl={appUrl}
-      />
+      {pdfMounted && (
+        <Suspense fallback={null}>
+          <PdfTemplate
+            ref={pdfNodeRef}
+            ayah={ayah}
+            categoryLabel={categoryLabel}
+            privateNote={privateNote}
+            includeNote={includeNoteInPdf}
+            appUrl={appUrl}
+          />
+        </Suspense>
+      )}
 
-      <ShareSheet
-        ayah={ayah}
-        open={shareOpen}
-        onClose={() => setShareOpen(false)}
-      />
+      {shareOpen && (
+        <Suspense fallback={null}>
+          <ShareSheet
+            ayah={ayah}
+            open={shareOpen}
+            onClose={() => setShareOpen(false)}
+          />
+        </Suspense>
+      )}
     </>
   );
 }

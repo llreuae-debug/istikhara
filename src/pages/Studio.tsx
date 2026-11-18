@@ -35,14 +35,15 @@ import {
 } from "@/lib/video/timeline";
 import { render916Frame } from "@/lib/video/render";
 import { toSrt, toVtt } from "@/lib/video/subtitles";
-import {
-  export916Mp4,
-  loadQrImage916,
-  type EncodeProgress,
-} from "@/lib/video/encode";
+import type { EncodeProgress } from "@/lib/video/encode";
+import QRCode from "qrcode";
 import { GeometricBackground } from "@/components/GeometricBackground";
 import { AppFooter, AppHeader } from "@/components/AppShell";
 import { SafeZoneOverlay } from "@/components/SafeZoneOverlay";
+import { StoreBadges } from "@/components/StoreBadges";
+import { saveAndShareBlob } from "@/lib/nativeFiles";
+import { adService } from "@/lib/ads/adService";
+import { isNative } from "@/lib/platform";
 import { Head } from "@/seo/Head";
 
 const STUDIO_STORAGE_KEY = "istikhara:studio916:v1";
@@ -184,9 +185,20 @@ export default function Studio() {
         if (!active) return;
         setAyahs(list);
         if (list[0]) {
-          loadQrImage916(list[0]).then((img) => {
-            qrImgRef.current = img;
-          });
+          const qrUrl = `${BRAND.appUrl}/ur/ayah/${list[0].surahNumber}/${list[0].ayahNumber}`;
+          QRCode.toDataURL(qrUrl, {
+            width: 240,
+            margin: 1,
+            color: { dark: "#0A1A2F", light: "#F7F1E3" },
+          })
+            .then((dataUrl) => {
+              const img = new Image();
+              img.onload = () => {
+                qrImgRef.current = img;
+              };
+              img.src = dataUrl;
+            })
+            .catch(() => {});
         }
       })
       .finally(() => {
@@ -308,6 +320,7 @@ export default function Studio() {
     abortRef.current = controller;
 
     try {
+      const { export916Mp4 } = await import("@/lib/video/encode");
       const res = await export916Mp4({
         ayahs,
         selectedTafseerParagraphs: selectedTexts,
@@ -332,6 +345,15 @@ export default function Studio() {
         durationSec: res.totalDurationSec,
       });
 
+      if (isNative()) {
+        await saveAndShareBlob({
+          blob: res.mp4Blob,
+          filename,
+          kind: "video",
+          openShareSheet: false,
+        });
+      }
+
       trackEvent({
         name: "video_exported",
         props: {
@@ -340,6 +362,7 @@ export default function Studio() {
           duration: Math.round(res.totalDurationSec),
         },
       });
+      await adService.showInterstitialAfterExport();
     } catch (err: any) {
       if (err?.message !== "Export cancelled") {
         setExportError(err?.message || "Export failed");
@@ -365,6 +388,7 @@ export default function Studio() {
 
       for (let i = 0; i < parts.length; i++) {
         const label = `حصہ ${i + 1}/${parts.length}`;
+        const { export916Mp4 } = await import("@/lib/video/encode");
         const res = await export916Mp4({
           ayahs: parts[i].partAyahs,
           selectedTafseerParagraphs: parts[i].paras,
@@ -419,7 +443,7 @@ export default function Studio() {
       <GeometricBackground />
       <AppHeader />
 
-      <main className="flex-1 max-w-6xl w-full mx-auto px-4 py-8 space-y-6">
+      <main className="flex-1 min-h-[85dvh] max-w-6xl w-full mx-auto px-4 py-8 space-y-6">
         <header className="space-y-1">
           <h1 className="font-display-serif text-2xl sm:text-3xl font-semibold text-[var(--accent-gold)]">
             قرآنی آیت ویڈیو میکر / Quran Verse Video Maker
@@ -435,8 +459,7 @@ export default function Studio() {
           {/* Left/Top: Live 9:16 Preview */}
           <section className="lg:col-span-5 rounded-2xl border border-[var(--border-gold)] bg-[var(--bg-card)] p-4 flex flex-col items-center gap-4">
             <div
-              className="relative w-full max-w-[300px] sm:max-w-[330px] rounded-xl overflow-hidden border border-[var(--border-subtle)]"
-              style={{ aspectRatio: `${VIDEO_WIDTH} / ${VIDEO_HEIGHT}` }}
+              className="relative w-[300px] h-[533px] sm:w-[330px] sm:h-[587px] rounded-xl overflow-hidden border border-[var(--border-subtle)]"
             >
               <canvas
                 ref={canvasRef}
@@ -508,7 +531,7 @@ export default function Studio() {
                       </option>
                     ))
                   ) : (
-                    <option value={surah}>Surah {surah}</option>
+                    <option value={surah}>2. سُورَةُ البَقَرَةِ — Al-Baqara</option>
                   )}
                 </select>
               </label>
@@ -884,6 +907,17 @@ export default function Studio() {
                     </button>
                   )}
                 </div>
+
+                {!isNative() && (
+                  <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-card)] p-3 text-center space-y-2">
+                    <p className="text-xs text-[var(--text-secondary)]">
+                      {isUrdu
+                        ? "ہماری ایپ میں ویڈیوز براہِ راست گیلری میں محفوظ کریں:"
+                        : "Save to gallery easily in our app:"}
+                    </p>
+                    <StoreBadges placement="post_export" />
+                  </div>
+                )}
 
                 {/* Caption Composer */}
                 <div className="space-y-2 border-t border-[var(--border-subtle)] pt-3">

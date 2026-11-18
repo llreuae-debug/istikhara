@@ -35,12 +35,12 @@
     />
     <meta name="twitter:image" content="/og-image.png" />
 
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- Non-blocking fallback for Amiri Quran -->
     <link
-      href="https://fonts.googleapis.com/css2?family=Amiri+Quran&family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600&family=Noto+Nastaliq+Urdu:wght@400;600;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Amiri+Quran&display=swap"
       rel="stylesheet"
+      media="print"
+      onload="this.media='all'"
     />
 
     <!-- JSON-LD WebApplication Schema -->

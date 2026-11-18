@@ -1,0 +1,16 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "TODO_TEAM_ID.com.istikhara.app",
+        "paths": [
+          "/ur/ayah/*",
+          "/en/ayah/*",
+          "/ur/verses/*",
+          "/en/verses/*"
+        ]
+      }
+    ]
+  }
+}

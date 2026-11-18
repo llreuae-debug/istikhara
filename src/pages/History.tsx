@@ -11,6 +11,7 @@ import {
 } from "@/lib/storage";
 import { GeometricBackground } from "@/components/GeometricBackground";
 import { AppHeader } from "@/components/AppShell";
+import { AdSlot } from "@/components/AdSlot";
 
 const ALL_CATEGORIES: Array<IntentionCategory | "all"> = [
   "all",
@@ -236,6 +237,8 @@ export default function History() {
             })}
           </div>
         )}
+
+        <AdSlot format="inline" slotKey="historyDaily" />
       </main>
     </div>
   );

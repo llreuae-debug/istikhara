@@ -8,6 +8,7 @@ import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { FaqAccordion } from "@/components/FaqAccordion";
 import { Head } from "@/seo/Head";
 import { buildBreadcrumbJsonLd, buildFaqJsonLd } from "@/seo/jsonld";
+import { AdSlot } from "@/components/AdSlot";
 
 export default function FaqPage() {
   const { uiLang, isRtl, t } = useApp();
@@ -55,6 +56,8 @@ export default function FaqPage() {
         </h1>
 
         <FaqAccordion items={rows} isUrdu={isUrdu} />
+
+        <AdSlot format="inline" slotKey="faq" />
 
         <div className="pt-2">
           <Link

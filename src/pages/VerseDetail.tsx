@@ -47,7 +47,7 @@ export default function VerseDetail() {
       <GeometricBackground brighten />
       <AppHeader />
 
-      <main className="flex-1 max-w-4xl w-full mx-auto px-4 py-8 sm:py-12 space-y-6">
+      <main className="flex-1 min-h-[85dvh] max-w-4xl w-full mx-auto px-4 py-8 sm:py-12 space-y-6">
         <Breadcrumbs
           isRtl={isRtl}
           items={[
@@ -57,37 +57,39 @@ export default function VerseDetail() {
           ]}
         />
 
+        <h1 className="font-display-serif text-2xl sm:text-3xl font-semibold text-center text-[var(--accent-gold)]">
+          {ayah
+            ? `${ayah.surahNameAr} • ${ayah.surahNameEn} (${ayah.surahNumber}:${ayah.ayahNumber})`
+            : `Quran ${ref}`}
+        </h1>
+
         {loading && (
-          <div className="max-w-3xl mx-auto rounded-2xl border border-[var(--border-gold)] bg-[var(--bg-card)] p-8">
+          <div className="max-w-3xl w-full mx-auto rounded-2xl border border-[var(--border-gold)] bg-[var(--bg-card)] p-8 min-h-[540px]">
             <div className="h-16 w-full rounded-xl mushaf-shimmer" />
           </div>
         )}
 
         {ayah && !loading && (
-          <>
-            <h1 className="font-display-serif text-2xl sm:text-3xl font-semibold text-center text-[var(--accent-gold)]">
-              {ayah.surahNameAr} • {ayah.surahNameEn} ({ayah.surahNumber}:{ayah.ayahNumber})
-            </h1>
-            <VerseCard
-              ayah={ayah}
-              ctaSlot={
-                <div className="flex flex-wrap justify-center gap-3">
-                  <Link
-                    to={`/${uiLang}/studio?s=${ayah.surahNumber}&a=${ayah.ayahNumber}`}
-                    className="px-5 py-2.5 rounded-xl border border-[var(--border-gold)] text-sm text-[var(--accent-gold)]"
-                  >
-                    🎬 {uiLang === "ur" ? "ویڈیو بنائیں" : "Create Video"}
-                  </Link>
-                  <Link
-                    to={`/${uiLang}/prepare`}
-                    className="px-5 py-2.5 rounded-xl bg-[var(--gold)] text-[#0A1A2F] font-semibold text-sm"
-                  >
-                    {t.home.beginCta}
-                  </Link>
-                </div>
-              }
-            />
-          </>
+          <VerseCard
+            ayah={ayah}
+            animateReveal={false}
+            ctaSlot={
+              <div className="flex flex-wrap justify-center gap-3">
+                <Link
+                  to={`/${uiLang}/studio?s=${ayah.surahNumber}&a=${ayah.ayahNumber}`}
+                  className="px-5 py-2.5 rounded-xl border border-[var(--border-gold)] text-sm text-[var(--accent-gold)]"
+                >
+                  🎬 {uiLang === "ur" ? "ویڈیو بنائیں" : "Create Video"}
+                </Link>
+                <Link
+                  to={`/${uiLang}/prepare`}
+                  className="px-5 py-2.5 rounded-xl bg-[var(--gold)] text-[#0A1A2F] font-semibold text-sm"
+                >
+                  {t.home.beginCta}
+                </Link>
+              </div>
+            }
+          />
         )}
       </main>
     </div>

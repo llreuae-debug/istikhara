@@ -9,6 +9,9 @@ import { GeometricBackground } from "@/components/GeometricBackground";
 import { AppFooter, AppHeader } from "@/components/AppShell";
 import { Logo } from "@/components/Logo";
 import { AnswerSummary } from "@/components/AnswerSummary";
+import { StoreBadges } from "@/components/StoreBadges";
+import { AdSlot } from "@/components/AdSlot";
+import { isNative } from "@/lib/platform";
 import { Head } from "@/seo/Head";
 import {
   buildOrganizationJsonLd,
@@ -220,6 +223,35 @@ export default function Home() {
               ))}
             </div>
           </div>
+
+          {/* Get the App (web only) */}
+          {!isNative() && (
+            <div className="rounded-2xl border border-[var(--border-gold)] bg-[var(--bg-card)] p-6 sm:p-8 flex flex-col md:flex-row items-center justify-between gap-6">
+              <div className="space-y-3 text-center md:text-start">
+                <h2 className="font-display-serif text-2xl font-semibold text-[var(--accent-gold)]">
+                  {isUrdu ? "موبائل ایپ ڈاؤن لوڈ کریں" : "Get the Istikhara Mobile App"}
+                </h2>
+                <ul className="text-xs sm:text-sm text-[var(--text-secondary)] space-y-1">
+                  <li>✓ {isUrdu ? "مکمل آف لائن قرآن اور تفاسیر" : "Works completely offline"}</li>
+                  <li>✓ {isUrdu ? "روزانہ آج کی آیت کی یاددہانی" : "Daily Verse of the Day notification"}</li>
+                  <li>✓ {isUrdu ? "PDF اور 9:16 ویڈیو براہِ راست گیلری میں محفوظ کریں" : "Save PDFs & MP4 videos straight to gallery"}</li>
+                </ul>
+                <div className="pt-2">
+                  <StoreBadges placement="home_section" showDesktopQr />
+                </div>
+              </div>
+              <div
+                aria-hidden="true"
+                className="w-40 h-72 rounded-[28px] border-2 border-[var(--gold)]/60 bg-gradient-to-b from-[#0B3D2E] to-[#0A1A2F] p-4 flex flex-col items-center justify-center gap-3 shadow-xl shrink-0"
+              >
+                <Logo size={48} variant="mark" />
+                <span className="font-urdu-nastaliq text-sm text-[#E6CF7A]">استخارہ</span>
+                <span className="text-[10px] text-[#F7F1E3]/70">Android &amp; iOS</span>
+              </div>
+            </div>
+          )}
+
+          <AdSlot format="banner" slotKey="home" />
         </section>
       </main>
 

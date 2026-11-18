@@ -7,6 +7,7 @@ import { GeometricBackground } from "@/components/GeometricBackground";
 import { AppFooter, AppHeader } from "@/components/AppShell";
 import { VerseCard } from "@/components/VerseCard";
 import { Head } from "@/seo/Head";
+import { AdSlot } from "@/components/AdSlot";
 
 export default function Daily() {
   const { t, uiLang } = useApp();
@@ -78,6 +79,8 @@ export default function Daily() {
         )}
 
         {ayah && !loading && <VerseCard ayah={ayah} />}
+
+        <AdSlot format="inline" slotKey="historyDaily" />
       </main>
     </div>
   );

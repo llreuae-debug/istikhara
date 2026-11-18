@@ -2,6 +2,9 @@ import { useState } from "react";
 import { Download } from "lucide-react";
 import { useApp } from "@/lib/i18n";
 import { downloadFullQuranOffline } from "@/lib/quranApi";
+import { adService } from "@/lib/ads/adService";
+import { scheduleDailyVerseNotification } from "@/lib/notifications";
+import { isNative } from "@/lib/platform";
 import type {
   LanguageMode,
   ReciterEdition,
@@ -15,6 +18,9 @@ import { Head } from "@/seo/Head";
 export default function Settings() {
   const { settings, updateSettings, t, uiLang } = useApp();
   const [downloadPct, setDownloadPct] = useState<number | null>(null);
+  const [notifEnabled, setNotifEnabled] = useState(false);
+  const [notifTime, setNotifTime] = useState("08:00");
+  const [adFreeMsg, setAdFreeMsg] = useState<string | null>(null);
 
   const handleOfflineDownload = async () => {
     setDownloadPct(5);
@@ -227,6 +233,71 @@ export default function Settings() {
                 ? `${downloadPct}%`
                 : t.settings.offlineBtn}
             </button>
+          </div>
+
+          {/* Daily Verse Notification & Privacy / Ad-free options */}
+          <div className="border-t border-[var(--border-subtle)] pt-5 space-y-4">
+            {isNative() && (
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <label className="inline-flex items-center gap-2 text-sm text-[var(--text-primary)] cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={notifEnabled}
+                    onChange={async (e) => {
+                      const next = e.target.checked;
+                      const [h, m] = notifTime.split(":").map(Number);
+                      const ok = await scheduleDailyVerseNotification(
+                        next,
+                        h || 8,
+                        m || 0,
+                        uiLang
+                      );
+                      setNotifEnabled(next && ok);
+                    }}
+                    className="w-4 h-4 accent-[#C9A227]"
+                  />
+                  {uiLang === "ur" ? "آج کی آیت روزانہ یاددہانی" : "Daily Verse Reminder"}
+                </label>
+                <input
+                  type="time"
+                  value={notifTime}
+                  onChange={(e) => setNotifTime(e.target.value)}
+                  className="rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-primary)] px-2.5 py-1 text-xs"
+                />
+              </div>
+            )}
+
+            <div className="flex flex-wrap gap-2.5">
+              {isNative() && (
+                <button
+                  type="button"
+                  onClick={async () => {
+                    const ok = await adService.showRewardedFor24hAdFree();
+                    if (ok) {
+                      setAdFreeMsg(
+                        uiLang === "ur"
+                          ? "24 گھنٹے کے لیے اشتہارات بند کر دیے گئے ہیں۔"
+                          : "Ad-free mode enabled for 24 hours."
+                      );
+                    }
+                  }}
+                  className="px-4 py-2 rounded-xl border border-[var(--gold)] bg-[var(--gold)]/15 text-xs font-medium text-[var(--accent-gold)]"
+                >
+                  اشتہار دیکھیں اور 24 گھنٹے بغیر اشتہار
+                </button>
+              )}
+
+              <button
+                type="button"
+                onClick={() => adService.showPrivacyOptions()}
+                className="px-4 py-2 rounded-xl border border-[var(--border-subtle)] text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+              >
+                {uiLang === "ur"
+                  ? "پرائیویسی کی ترتیبات / Privacy options"
+                  : "Privacy options / پرائیویسی کی ترتیبات"}
+              </button>
+            </div>
+            {adFreeMsg && <p className="text-xs text-[var(--accent-gold)]">{adFreeMsg}</p>}
           </div>
         </div>
       </main>

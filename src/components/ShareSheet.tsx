@@ -1,8 +1,11 @@
 import { useState } from "react";
 import { Check, Copy, Download, Share2, X } from "lucide-react";
 import { useApp } from "@/lib/i18n";
-import type { FetchedAyah } from "@/lib/quranApi";
+import type { FetchedAyah } from "@/lib/quran";
 import { generateShareImageBlob, type ShareImageFormat } from "@/lib/shareImage";
+import { saveAndShareBlob } from "@/lib/nativeFiles";
+import { adService } from "@/lib/ads/adService";
+import { trackEvent } from "@/lib/analytics";
 
 interface ShareSheetProps {
   ayah: FetchedAyah;
@@ -66,12 +69,14 @@ export function ShareSheet({ ayah, open, onClose }: ShareSheetProps) {
     setBusyFormat(format);
     try {
       const blob = await generateShareImageBlob(ayah, format, uiLang, appUrl);
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `Istikhara_${ayah.surahNumber}-${ayah.ayahNumber}_${format}.png`;
-      a.click();
-      URL.revokeObjectURL(url);
+      await saveAndShareBlob({
+        blob,
+        filename: `Istikhara_${ayah.surahNumber}-${ayah.ayahNumber}_${format}.png`,
+        kind: "image",
+        openShareSheet: false,
+      });
+      trackEvent({ name: "image_shared", props: { preset: format } });
+      await adService.showInterstitialAfterExport();
     } finally {
       setBusyFormat(null);
     }

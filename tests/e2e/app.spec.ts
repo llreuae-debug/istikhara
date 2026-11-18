@@ -61,4 +61,26 @@ test.describe("Istikhara E2E", () => {
     );
     expect(serious).toEqual([]);
   });
+
+  test("forbidden-zone ad guard, store badges, and settings privacy", async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+
+    // Forbidden zones must never render any [data-ad-slot]
+    for (const route of ["/ur/prepare", "/ur/focus", "/ur/dua", "/ur/studio"]) {
+      await page.goto(route);
+      await page.waitForTimeout(300);
+      await expect(page.locator("[data-ad-slot]")).toHaveCount(0);
+    }
+
+    // Store badges visible on Home (Google Play / App Store)
+    await page.goto("/en/");
+    await expect(page.getByText(/Google Play/i).first()).toBeVisible();
+    await expect(page.getByText(/App Store/i).first()).toBeVisible();
+
+    // Settings page renders privacy & consent section
+    await page.goto("/en/settings");
+    await expect(page.getByText(/Privacy/i).first()).toBeVisible();
+  });
 });

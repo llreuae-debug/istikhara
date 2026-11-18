@@ -1,5 +1,7 @@
 import { useRef, useState } from "react";
+import { Haptics, ImpactStyle } from "@capacitor/haptics";
 import { useApp } from "@/lib/i18n";
+import { isNative } from "@/lib/platform";
 
 interface TasbihBeadsProps {
   onComplete: () => void;
@@ -13,7 +15,12 @@ export function TasbihBeads({ onComplete }: TasbihBeadsProps) {
   const completedRef = useRef(false);
 
   const vibrate = (ms: number) => {
-    if (settings.haptics && typeof navigator !== "undefined" && navigator.vibrate) {
+    if (!settings.haptics) return;
+    if (isNative()) {
+      Haptics.impact({ style: ImpactStyle.Light }).catch(() => {});
+      return;
+    }
+    if (typeof navigator !== "undefined" && navigator.vibrate) {
       navigator.vibrate(ms);
     }
   };

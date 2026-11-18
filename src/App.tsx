@@ -1,29 +1,42 @@
 import { lazy, Suspense, useEffect } from "react";
-import { BrowserRouter, Navigate, Route, Routes, useParams } from "react-router-dom";
+import {
+  BrowserRouter,
+  Navigate,
+  Route,
+  Routes,
+  useLocation,
+  useNavigate,
+  useParams,
+} from "react-router-dom";
+import { App as CapApp } from "@capacitor/app";
+import { SplashScreen } from "@capacitor/splash-screen";
+import { StatusBar, Style } from "@capacitor/status-bar";
 import { AppProvider, useApp } from "@/lib/i18n";
 import { initAnalytics } from "@/lib/analytics";
+import { isNative } from "@/lib/platform";
+import { adService } from "@/lib/ads/adService";
 import { PwaInstallBanner } from "@/components/AppShell";
 import { ARTICLES } from "@/content/articles";
 import Home from "@/pages/Home";
-import Prepare from "@/pages/Prepare";
-import Focus from "@/pages/Focus";
-import Result from "@/pages/Result";
-import AyahLink from "@/pages/AyahLink";
 import Guide from "@/pages/Guide";
-import History from "@/pages/History";
-import Daily from "@/pages/Daily";
-import Settings from "@/pages/Settings";
-import About from "@/pages/About";
-import DuaPage from "@/pages/DuaPage";
-import FaqPage from "@/pages/FaqPage";
-import VersesIndex from "@/pages/VersesIndex";
 import VerseDetail from "@/pages/VerseDetail";
-import ArticlePage from "@/pages/ArticlePage";
-import Privacy from "@/pages/Privacy";
-import Contact from "@/pages/Contact";
+import Studio from "@/pages/Studio";
 import NotFound from "@/pages/NotFound";
 
-const Studio = lazy(() => import("@/pages/Studio"));
+const Prepare = lazy(() => import("@/pages/Prepare"));
+const Focus = lazy(() => import("@/pages/Focus"));
+const Result = lazy(() => import("@/pages/Result"));
+const AyahLink = lazy(() => import("@/pages/AyahLink"));
+const History = lazy(() => import("@/pages/History"));
+const Daily = lazy(() => import("@/pages/Daily"));
+const Settings = lazy(() => import("@/pages/Settings"));
+const About = lazy(() => import("@/pages/About"));
+const DuaPage = lazy(() => import("@/pages/DuaPage"));
+const FaqPage = lazy(() => import("@/pages/FaqPage"));
+const VersesIndex = lazy(() => import("@/pages/VersesIndex"));
+const ArticlePage = lazy(() => import("@/pages/ArticlePage"));
+const Privacy = lazy(() => import("@/pages/Privacy"));
+const Contact = lazy(() => import("@/pages/Contact"));
 
 function RootRedirect() {
   const { settings } = useApp();
@@ -53,48 +66,107 @@ function LangGuard({ children }: { children: React.ReactNode }) {
 function LocalizedRoutes() {
   return (
     <LangGuard>
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/prepare" element={<Prepare />} />
-        <Route path="/focus" element={<Focus />} />
-        <Route path="/result" element={<Result />} />
-        <Route path="/ayah/:surah/:ayah" element={<AyahLink />} />
-        <Route path="/daily" element={<Daily />} />
-        <Route
-          path="/studio"
-          element={
-            <Suspense
-              fallback={
-                <div className="min-h-dvh flex items-center justify-center text-sm text-[var(--accent-gold)]">
-                  Loading Studio…
-                </div>
-              }
-            >
-              <Studio />
-            </Suspense>
-          }
-        />
-        <Route path="/history" element={<History />} />
-        <Route path="/settings" element={<Settings />} />
-        <Route path="/guide" element={<Guide />} />
-        <Route path="/dua" element={<DuaPage />} />
-        <Route path="/faq" element={<FaqPage />} />
-        <Route path="/verses" element={<VersesIndex />} />
-        <Route path="/verses/:slug" element={<VerseDetail />} />
-        {ARTICLES.map((a) => (
-          <Route
-            key={a.slug}
-            path={`/${a.slug}`}
-            element={<ArticlePage slug={a.slug} />}
-          />
-        ))}
-        <Route path="/about" element={<About />} />
-        <Route path="/privacy" element={<Privacy />} />
-        <Route path="/contact" element={<Contact />} />
-        <Route path="*" element={<NotFound />} />
-      </Routes>
+      <Suspense
+        fallback={
+          <div className="min-h-dvh flex items-center justify-center bg-[var(--bg-primary)] text-sm text-[var(--accent-gold)]">
+            …
+          </div>
+        }
+      >
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/prepare" element={<Prepare />} />
+          <Route path="/focus" element={<Focus />} />
+          <Route path="/result" element={<Result />} />
+          <Route path="/ayah/:surah/:ayah" element={<AyahLink />} />
+          <Route path="/daily" element={<Daily />} />
+          <Route path="/studio" element={<Studio />} />
+          <Route path="/history" element={<History />} />
+          <Route path="/settings" element={<Settings />} />
+          <Route path="/guide" element={<Guide />} />
+          <Route path="/dua" element={<DuaPage />} />
+          <Route path="/faq" element={<FaqPage />} />
+          <Route path="/verses" element={<VersesIndex />} />
+          <Route path="/verses/:slug" element={<VerseDetail />} />
+          {ARTICLES.map((a) => (
+            <Route
+              key={a.slug}
+              path={`/${a.slug}`}
+              element={<ArticlePage slug={a.slug} />}
+            />
+          ))}
+          <Route path="/about" element={<About />} />
+          <Route path="/privacy" element={<Privacy />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </Suspense>
     </LangGuard>
   );
+}
+
+function NativeBridge() {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    if (!isNative()) return;
+    StatusBar.setStyle({ style: Style.Dark }).catch(() => {});
+    StatusBar.setBackgroundColor({ color: "#0A1A2F" }).catch(() => {});
+    SplashScreen.hide().catch(() => {});
+    adService.initNativeAds();
+
+    let openedViaLink = false;
+
+    const backSub = CapApp.addListener("backButton", ({ canGoBack }) => {
+      const openDialog = document.querySelector('[role="dialog"] button[aria-label="Close"], [role="dialog"] button[aria-label="بند کریں"]');
+      if (openDialog instanceof HTMLElement) {
+        openDialog.click();
+        return;
+      }
+      const isHome =
+        location.pathname === "/ur/" ||
+        location.pathname === "/en/" ||
+        location.pathname === "/ur" ||
+        location.pathname === "/en";
+      if (!isHome && canGoBack) {
+        navigate(-1);
+        return;
+      }
+      if (window.confirm("ایپ بند کریں؟ / Exit Istikhara?")) {
+        CapApp.exitApp();
+      }
+    });
+
+    const stateSub = CapApp.addListener("appStateChange", ({ isActive }) => {
+      if (!isActive) {
+        adService.markBackgrounded();
+      } else {
+        adService.maybeShowAppOpenOnResume(openedViaLink);
+        openedViaLink = false;
+      }
+    });
+
+    const urlSub = CapApp.addListener("appUrlOpen", ({ url }) => {
+      try {
+        const parsed = new URL(url);
+        if (parsed.pathname) {
+          openedViaLink = true;
+          navigate(`${parsed.pathname}${parsed.search}`);
+        }
+      } catch {
+        // ignore invalid deep link
+      }
+    });
+
+    return () => {
+      backSub.then((h) => h.remove());
+      stateSub.then((h) => h.remove());
+      urlSub.then((h) => h.remove());
+    };
+  }, [location.pathname, navigate]);
+
+  return null;
 }
 
 export default function App() {
@@ -105,6 +177,7 @@ export default function App() {
   return (
     <AppProvider>
       <BrowserRouter>
+        <NativeBridge />
         <Routes>
           <Route path="/" element={<RootRedirect />} />
           <Route path="/:lang/*" element={<LocalizedRoutes />} />

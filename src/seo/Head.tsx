@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { SITE_CONFIG } from "@/config/site";
+import { STORE_CONFIG } from "@/config/stores";
 import { getPageSeo, type SeoLang } from "./pages";
 
 interface HeadProps {
@@ -76,6 +77,14 @@ export function Head({
     upsertLink("alternate", urHref, "ur");
     upsertLink("alternate", enHref, "en");
     upsertLink("alternate", urHref, "x-default");
+
+    if (STORE_CONFIG.iosAppId) {
+      upsertMeta(
+        "name",
+        "apple-itunes-app",
+        `app-id=${STORE_CONFIG.iosAppId}, app-argument=${canonicalUrl}`
+      );
+    }
 
     // Remove previous dynamic JSON-LD blocks managed by Head
     document.head

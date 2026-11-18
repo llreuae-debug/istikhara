@@ -13,6 +13,8 @@ import {
 import { GeometricBackground } from "@/components/GeometricBackground";
 import { AppFooter, AppHeader } from "@/components/AppShell";
 import { VerseCard } from "@/components/VerseCard";
+import { AdSlot } from "@/components/AdSlot";
+import { AD_FREQUENCY_CAPS } from "@/config/ads";
 import { Head } from "@/seo/Head";
 
 export default function Result() {
@@ -116,14 +118,20 @@ export default function Result() {
         )}
 
         {ayah && !loading && (
-          <VerseCard
-            ayah={ayah}
-            isSaved={isSaved}
-            onToggleSave={handleToggleSave}
-            onNewIstikhara={() => navigate(`/${uiLang}/prepare`)}
-            categoryLabel={t.categories[intention.category]}
-            privateNote={intention.note}
-          />
+          <div className="space-y-8">
+            <VerseCard
+              ayah={ayah}
+              isSaved={isSaved}
+              onToggleSave={handleToggleSave}
+              onNewIstikhara={() => navigate(`/${uiLang}/prepare`)}
+              categoryLabel={t.categories[intention.category]}
+              privateNote={intention.note}
+            />
+            <AdSlot
+              format="inline"
+              delayMs={AD_FREQUENCY_CAPS.resultInlineDelayMs}
+            />
+          </div>
         )}
       </main>
       <AppFooter />

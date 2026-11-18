@@ -25,6 +25,18 @@ export default defineConfig({
         display: "standalone",
         orientation: "portrait",
         start_url: "/",
+        ...(process.env.VITE_PLAY_STORE_URL
+          ? {
+              prefer_related_applications: true,
+              related_applications: [
+                {
+                  platform: "play",
+                  url: process.env.VITE_PLAY_STORE_URL,
+                  id: "com.istikhara.app",
+                },
+              ],
+            }
+          : {}),
         icons: [
           {
             src: "/icons/icon-192.png",
@@ -46,7 +58,19 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ["**/*.{js,css,html,ico,png,svg,woff,woff2}"],
+        globIgnores: ["**/data/quran/**", "**/og/**", "**/plugins/**"],
         runtimeCaching: [
+          {
+            urlPattern: /\/data\/quran\/.*\.json$/i,
+            handler: "CacheFirst",
+            options: {
+              cacheName: "local-quran-json-cache",
+              expiration: {
+                maxEntries: 400,
+                maxAgeSeconds: 60 * 60 * 24 * 365,
+              },
+            },
+          },
           {
             urlPattern: /^https:\/\/api\.alquran\.cloud\/v1\/ayah\/.*/i,
             handler: "CacheFirst",
@@ -87,6 +111,14 @@ export default defineConfig({
   build: {
     outDir: "dist",
     emptyOutDir: true,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          "vendor-react": ["react", "react-dom", "react-router-dom"],
+          "vendor-motion": ["framer-motion"],
+        },
+      },
+    },
   },
   server: {
     host: "0.0.0.0",
