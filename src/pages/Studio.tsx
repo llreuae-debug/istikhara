@@ -34,6 +34,7 @@ import {
   type VideoTheme,
 } from "@/lib/video/timeline";
 import { render916Frame } from "@/lib/video/render";
+import { buildVideoSeo } from "@/lib/video/seoComposer";
 import { toSrt, toVtt } from "@/lib/video/subtitles";
 import type { EncodeProgress } from "@/lib/video/encode";
 import QRCode from "qrcode";
@@ -303,6 +304,7 @@ export default function Studio() {
   const [progress, setProgress] = useState<EncodeProgress | null>(null);
   const [exportError, setExportError] = useState<string | null>(null);
   const [copiedCaption, setCopiedCaption] = useState(false);
+  const [copiedSeoField, setCopiedSeoField] = useState<string | null>(null);
   const [exported, setExported] = useState<{
     mp4Url: string;
     mp4Blob: Blob;
@@ -1020,9 +1022,22 @@ export default function Studio() {
     ? `${BRAND.appUrl}/ur/ayah/${primaryAyah.surahNumber}/${primaryAyah.ayahNumber}?utm_source=${platform.id}&utm_medium=social&utm_campaign=verse_video_916`
     : BRAND.appUrl;
 
-  const captionText = primaryAyah
-    ? `📖 سورۃ ${primaryAyah.surahNameAr} ${primaryAyah.surahNumber}:${primaryAyah.ayahNumber}\n${primaryAyah.urduText.slice(0, 120).trim()}…\n🎙 تلاوت: ${getReciterName(reciter, "ur")}${mode !== "urdu-tarjuma" ? `   📚 تفسیر: ${tafsirInfo.nameUr}` : ""}${voiceCreditUr ? `   🔊 ${voiceCreditUr}` : ""}\n🔗 ${shareUrl}\n#استخارہ #Istikhara #QuranVerse #قرآن #تفسیر #IslamicReels`
-    : "";
+  const seoPkg = useMemo(
+    () =>
+      buildVideoSeo({
+        ayahs,
+        reciterNameUr: getReciterName(reciter, "ur"),
+        reciterNameEn: getReciterName(reciter, "en"),
+        mode,
+        tafsirNameUr: tafsirInfo.nameUr,
+        voiceCreditUr,
+        shareUrl,
+        captionLimit: platform.captionLimit,
+      }),
+    [ayahs, reciter, mode, tafsirInfo.nameUr, voiceCreditUr, shareUrl, platform.captionLimit]
+  );
+
+  const captionText = seoPkg.fullCaption;
 
   const exceedsDuration =
     platform.maxDurationSec !== null &&
@@ -1400,20 +1415,115 @@ export default function Studio() {
                   </div>
                 )}
 
-                {/* Caption Composer */}
-                <div className="space-y-2 border-t border-[var(--border-subtle)] pt-3">
+                {/* SEO & Caption Composer */}
+                <div className="space-y-3 border-t border-[var(--border-subtle)] pt-3">
                   <div className="flex items-center justify-between text-xs text-[var(--text-secondary)]">
-                    <span>کیپشن / Caption</span>
+                    <span className="font-semibold text-[var(--accent-gold)]">
+                      {isUrdu ? "SEO اور کیپشن / SEO & Caption" : "SEO & Caption"}
+                    </span>
                     <span>
                       {captionText.length} / {platform.captionLimit}
                     </span>
                   </div>
-                  <textarea
-                    readOnly
-                    rows={5}
-                    value={captionText}
-                    className="w-full rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-primary)] p-2.5 text-xs"
-                  />
+
+                  {/* Title */}
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between text-[11px] text-[var(--text-muted)]">
+                      <span>Title ({seoPkg.title.length}/100)</span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          navigator.clipboard?.writeText(seoPkg.title);
+                          setCopiedSeoField("title");
+                          setTimeout(() => setCopiedSeoField(null), 1500);
+                        }}
+                        className="inline-flex items-center gap-1 text-[var(--accent-gold)] hover:underline"
+                      >
+                        {copiedSeoField === "title" ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                        {copiedSeoField === "title" ? "Copied" : "Copy Title"}
+                      </button>
+                    </div>
+                    <input
+                      readOnly
+                      value={seoPkg.title}
+                      className="w-full rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-primary)] px-2.5 py-2 text-xs"
+                    />
+                  </div>
+
+                  {/* Description */}
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between text-[11px] text-[var(--text-muted)]">
+                      <span>Description ({seoPkg.description.length})</span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          navigator.clipboard?.writeText(seoPkg.description);
+                          setCopiedSeoField("desc");
+                          setTimeout(() => setCopiedSeoField(null), 1500);
+                        }}
+                        className="inline-flex items-center gap-1 text-[var(--accent-gold)] hover:underline"
+                      >
+                        {copiedSeoField === "desc" ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                        {copiedSeoField === "desc" ? "Copied" : "Copy Description"}
+                      </button>
+                    </div>
+                    <textarea
+                      readOnly
+                      rows={5}
+                      value={seoPkg.description}
+                      className="w-full rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-primary)] p-2.5 text-xs"
+                    />
+                  </div>
+
+                  {/* 5 Hashtags */}
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between text-[11px] text-[var(--text-muted)]">
+                      <span>5 Hashtags</span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          navigator.clipboard?.writeText(seoPkg.hashtags.join(" "));
+                          setCopiedSeoField("hashtags");
+                          setTimeout(() => setCopiedSeoField(null), 1500);
+                        }}
+                        className="inline-flex items-center gap-1 text-[var(--accent-gold)] hover:underline"
+                      >
+                        {copiedSeoField === "hashtags" ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                        {copiedSeoField === "hashtags" ? "Copied" : "Copy 5 Hashtags"}
+                      </button>
+                    </div>
+                    <input
+                      readOnly
+                      value={seoPkg.hashtags.join(" ")}
+                      className="w-full rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-primary)] px-2.5 py-2 text-xs text-[var(--accent-gold)]"
+                    />
+                  </div>
+
+                  {/* 25 Keywords */}
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between text-[11px] text-[var(--text-muted)]">
+                      <span>25 Keywords</span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          navigator.clipboard?.writeText(seoPkg.keywords.join(", "));
+                          setCopiedSeoField("keywords");
+                          setTimeout(() => setCopiedSeoField(null), 1500);
+                        }}
+                        className="inline-flex items-center gap-1 text-[var(--accent-gold)] hover:underline"
+                      >
+                        {copiedSeoField === "keywords" ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                        {copiedSeoField === "keywords" ? "Copied" : "Copy 25 Keywords"}
+                      </button>
+                    </div>
+                    <textarea
+                      readOnly
+                      rows={3}
+                      value={seoPkg.keywords.join(", ")}
+                      className="w-full rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-primary)] p-2.5 text-xs"
+                    />
+                  </div>
+
                   {platform.linkInBioHint && (
                     <p className="text-xs text-[var(--accent-gold)]">
                       لنک بائیو میں — Instagram/TikTok captions do not make links clickable.
@@ -1433,7 +1543,7 @@ export default function Studio() {
                     ) : (
                       <Copy className="w-3.5 h-3.5" aria-hidden="true" />
                     )}
-                    {copiedCaption ? "کاپی ہو گیا" : "Copy Caption"}
+                    {copiedCaption ? "کاپی ہو گیا" : "Copy Full Caption"}
                   </button>
                 </div>
               </div>

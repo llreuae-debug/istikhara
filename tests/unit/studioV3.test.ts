@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { shapeWordToGlyphPaths } from "../../src/lib/video/harfbuzzWrite";
 import { autoContrastForLuminance } from "../../src/lib/video/contrast";
 import { computePointerState } from "../../src/lib/video/pointers";
+import { buildVideoSeo } from "../../src/lib/video/seoComposer";
 import { SHORTS_TEMPLATES } from "../../src/config/templates";
 import { UNIVERSAL_SAFE_BOX } from "../../src/config/platforms916";
 import { build916Timeline, type Studio916Options } from "../../src/lib/video/timeline";
@@ -151,5 +152,21 @@ describe("Phase 3 — 7 Shorts Templates & Safe-Zone Layout", () => {
       expect(state).not.toBeNull();
       expect(typeof state!.page).toBe("number");
     }
+  });
+
+  it("generates SEO package with Title (<=100), Description, 5 Hashtags, and 25 Keywords", () => {
+    const seo = buildVideoSeo({
+      ayahs: [SAMPLE_AYAHS[1]],
+      reciterNameUr: "مشاري راشد العفاسي",
+      reciterNameEn: "Mishary Rashid Alafasy",
+      mode: "urdu-tarjuma",
+      shareUrl: "https://istikhara.app/ur/ayah/3/159",
+      captionLimit: 5000,
+    });
+    expect(seo.title.length).toBeGreaterThan(10);
+    expect(seo.title.length).toBeLessThanOrEqual(100);
+    expect(seo.description).toContain(SAMPLE_AYAHS[1].urduText);
+    expect(seo.hashtags).toHaveLength(5);
+    expect(seo.keywords).toHaveLength(25);
   });
 });
